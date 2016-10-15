@@ -36,8 +36,6 @@ module RingBuffer(input bit rst, clk,
 	assign wbus.request = push.request;
 	assign rbus.request = (used == '0) ? 0 : pop.request;
 	assign control.memUsed = used;
-	assign push.done = wbus.done;
-	assign pop.done = rbus.done;
 	
 	assign used = (taddr >= raddr) ? (taddr - raddr)
 											 : (MEM_END_ADDR - MEM_START_ADDR + taddr - raddr + 1);
@@ -55,6 +53,8 @@ module RingBuffer(input bit rst, clk,
 			raddr <= MEM_START_ADDR;
 			taddr <= MEM_START_ADDR;
 			isInTransactionFlag <= 0;
+			push.done <= 0;
+			pop.done <= 0;
 			end
 		else begin
 			raddr <= nextRaddr;
@@ -65,6 +65,9 @@ module RingBuffer(input bit rst, clk,
 				isInTransactionFlag <= 1;
 			else if(control.commit | control.rollback)
 				isInTransactionFlag <= 0;
+				
+			push.done <= wbus.done;
+			pop.done <= rbus.done;
 		end
 		
 	always_comb begin

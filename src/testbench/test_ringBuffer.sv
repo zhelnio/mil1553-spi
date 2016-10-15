@@ -28,14 +28,21 @@ module test_ringBuffer();
 	
 	  #2	rst = '0;
 
+    assert (rcontrol.memUsed == 0);
+    
 	  pushHelper.doPush(16'hABCD);
+	  assert (rcontrol.memUsed == 1);
+	  
 	  pushHelper.doPush(16'h1234);
+	  assert (rcontrol.memUsed == 2);
 	
     popHelper.doPop();
     assert (pop.data == 16'hABCD);
+    assert (rcontrol.memUsed == 1);
   
     popHelper.doPop();
     assert (pop.data == 16'h1234);
+    assert (rcontrol.memUsed == 0);
     
     #10 $stop;
   end
@@ -71,16 +78,23 @@ module test_ringBufferOverflow();
     {rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
 	  #2	rst = '0;
+	  assert (rcontrol.memUsed == 0);
     pushHelper.doPush(16'hABCD);
+    assert (rcontrol.memUsed == 1);
     pushHelper.doPush(16'hEF01);
+    assert (rcontrol.memUsed == 2);
     pushHelper.doPush(16'h2345);
+    assert (rcontrol.memUsed == 2);
     pushHelper.doPush(16'h6789);
+    assert (rcontrol.memUsed == 2);
     
     popHelper.doPop();	
     assert (pop.data == 16'h2345);
+    assert (rcontrol.memUsed == 1);
     
     popHelper.doPop();	
     assert (pop.data == 16'h6789);
+    assert (rcontrol.memUsed == 0);
     
     #10 $stop;
   end
@@ -128,33 +142,50 @@ module test_ringBufferConcurentOverflow();
 	
     fork
       begin
+        assert (rcontrol[0].memUsed == 0);
         pushHelperA.doPush(16'h1111);
+        assert (rcontrol[0].memUsed == 1);
         pushHelperA.doPush(16'h2222);
+        assert (rcontrol[0].memUsed == 2);
         pushHelperA.doPush(16'h3333);
+        assert (rcontrol[0].memUsed == 2);
         pushHelperA.doPush(16'h4444);
+        assert (rcontrol[0].memUsed == 2);
         pushHelperA.doPush(16'h5555);
+        assert (rcontrol[0].memUsed == 2);
         pushHelperA.doPush(16'h6666);
+        assert (rcontrol[0].memUsed == 2);
       end
       begin
+        assert (rcontrol[1].memUsed == 0);
         pushHelperB.doPush(16'h7777);
+        assert (rcontrol[1].memUsed == 1);
         pushHelperB.doPush(16'h8888);
+        assert (rcontrol[1].memUsed == 2);
       end
     join
     
     fork
-      popHelperA.doPop();	
-      popHelperB.doPop();	
+      begin
+        popHelperA.doPop();	
+        assert (rcontrol[0].memUsed == 1);
+        assert (pop[0].data == 16'h5555);
+      end
+      
+      begin
+        popHelperB.doPop();	
+        assert (rcontrol[1].memUsed == 1);
+        assert (pop[1].data == 16'h7777);
+      end
     join
-    
-    assert (pop[0].data == 16'h5555);
-    assert (pop[1].data == 16'h7777);
-    
+
     #10 $stop;
   end
 
   always #1 clk = !clk;
 
 endmodule
+
 
 
 
