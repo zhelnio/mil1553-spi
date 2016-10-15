@@ -3,93 +3,6 @@
 `ifndef RINGBUFFER_INCLUDE
 `define RINGBUFFER_INCLUDE
 
-module MemoryReader(input bit rst, clk, 
-						  IMemory.reader mbus,			//memory side
-						  IMemoryReader.slave cbus,	//reader data side
-						  IArbiter.client abus			//arbiter side
-);
-	enum {IDLE, WAIT_ACTION, PRE_ACTION, ACTION, POST_ACTION } State, Next;
-	
-	always_ff @ (posedge clk)
-		if(rst)
-			State <= IDLE;
-		else begin
-			State <= Next;
-			if(State == ACTION && Next == POST_ACTION)
-				cbus.data <= mbus.rd_data;
-		end
-	
-	always_comb begin
-		Next = State;
-		unique case(State)
-			IDLE:			       if(cbus.request) Next = WAIT_ACTION;
-			WAIT_ACTION:   if(abus.grant) Next = PRE_ACTION;
-			PRE_ACTION:	   if(mbus.busy) Next = ACTION;
-			ACTION:		      if(!mbus.busy) Next = POST_ACTION;
-			POST_ACTION:   Next = (cbus.request) ? WAIT_ACTION : IDLE;
-		endcase
-	end
-	
-	logic [2:0] out;
-	assign {mbus.rd_enable, cbus.done, abus.request} = out;
-	
-	assign mbus.rd_addr = (State == PRE_ACTION || State == ACTION) ? cbus.addr : 'z;
-	
-	always_comb begin
-		unique case(State)
-			IDLE:				      out=3'bz00;
-			WAIT_ACTION:	  out=3'bz01;
-			PRE_ACTION:		  out=3'b101;
-			ACTION:			     out=3'b001;
-			POST_ACTION: 	 out=3'bz10;
-		endcase
-	end
-endmodule
-
-
-module MemoryWriter(input bit rst, clk, 
-						  IMemory.writer mbus,
-						  IMemoryWriter.slave cbus,
-						  IArbiter.client abus
-);
-	enum {IDLE, WAIT_ACTION, PRE_ACTION, ACTION, POST_ACTION } State, Next;
-	
-	always_ff @ (posedge clk)
-		if(rst)
-			State <= IDLE;
-		else
-			State <= Next;
-	
-	always_comb begin
-		Next = State;
-		unique case(State)
-			IDLE:				if(cbus.request) Next = WAIT_ACTION;
-			WAIT_ACTION:	if(abus.grant) Next = PRE_ACTION;
-			PRE_ACTION:		if(mbus.busy) Next = ACTION;
-			ACTION:			if(!mbus.busy) Next = POST_ACTION;
-			POST_ACTION: 	Next = (cbus.request) ? WAIT_ACTION : IDLE;
-		endcase
-	end
-	
-	logic [2:0] out;
-	assign {mbus.wr_enable, cbus.done, abus.request} = out;
-	
-	assign mbus.wr_addr = (State == PRE_ACTION || State == ACTION) ? cbus.addr : 'z;
-	assign mbus.wr_data = (State == PRE_ACTION || State == ACTION) ? cbus.data : 'z;
-	
-	always_comb begin
-		unique case(State)
-			IDLE:				out=3'bz00;
-			WAIT_ACTION:	out=3'bz01;
-			PRE_ACTION:		out=3'b101;
-			ACTION:			out=3'b001;
-			POST_ACTION:	out=3'bz10;
-		endcase
-	end
-
-endmodule
-
-
 interface IRingBufferControl();
 	logic [`ADDRW_TOP:0]	memUsed;
 	logic open, commit, rollback;
@@ -105,6 +18,8 @@ module RingBuffer(input bit rst, clk,
 						IMemoryWriter.master wbus,
 						IMemoryReader.master rbus
 );
+  // real max used space = MEM_END_ADDR - MEM_START_ADDR
+  // one memory cell is always unused
 	parameter MEM_START_ADDR 	= 16'd0;
 	parameter MEM_END_ADDR 		= 16'd2;
 
@@ -125,7 +40,7 @@ module RingBuffer(input bit rst, clk,
 	assign pop.done = rbus.done;
 	
 	assign used = (taddr >= raddr) ? (taddr - raddr)
-											 : (MEM_END_ADDR - MEM_START_ADDR + taddr - raddr);
+											 : (MEM_END_ADDR - MEM_START_ADDR + taddr - raddr + 1);
 	
 	logic debug;
 	assign debug = (taddr >= raddr);
@@ -180,10 +95,5 @@ module RingBuffer(input bit rst, clk,
 			nextTaddr = nextWaddr;
 	end
 endmodule
-
-
-
-
-
 
 `endif

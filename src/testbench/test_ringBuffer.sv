@@ -22,31 +22,25 @@ module test_ringBuffer();
 	IPopHelper  popHelper(clk, pop);
 	
 	
-initial begin
-	clk = '1;	rst = '1; 
-	{rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
+  initial begin
+    clk = '1;	rst = '1; 
+    {rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
-	#2	rst = '0;
+	  #2	rst = '0;
 
-	pushHelper.doPush(16'hABCD);
-	pushHelper.doPush(16'h1234);
-	pushHelper.doPush(16'h5678);
+	  pushHelper.doPush(16'hABCD);
+	  pushHelper.doPush(16'h1234);
 	
-  popHelper.doPop();
-  assert (pop.data == 16'hABCD);
+    popHelper.doPop();
+    assert (pop.data == 16'hABCD);
   
-	popHelper.doPop();
-	assert (pop.data == 16'h1234);
-	
-	popHelper.doPop();
-	assert (pop.data == 16'h5678);
-	
-	#10 $stop;
+    popHelper.doPop();
+    assert (pop.data == 16'h1234);
+    
+    #10 $stop;
+  end
 
-end
-
-always #1  clk =  ! clk;
-
+  always #1  clk =  !clk;
 endmodule
 
 module test_ringBufferOverflow();
@@ -64,46 +58,39 @@ module test_ringBufferOverflow();
 	MemoryReader	reader(rst, clk, mbus.reader, rBus.slave, abus[1].client);
 	MemoryWriter	writer(rst, clk, mbus.writer, wBus.slave, abus[0].client);
 	Arbiter			arbiter(rst, clk, abus);
-	RingBuffer		ring(rst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
 	
-task doPush(logic [15:0] data);
-	@(posedge clk)	push.master.request = '1; push.master.data	= data;
-	@(posedge clk)	push.master.request = '0;
-
-	@(push.master.done);
-endtask
-
-task doPop();	
-	@(posedge clk)	pop.master.request = '1;
-	@(posedge clk)	pop.master.request = '0;
-
-	@(pop.master.done);
-endtask
+	RingBuffer	#(.MEM_START_ADDR(16'h00), .MEM_END_ADDR(16'h02))	
+	           ring(rst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
+     
+	//test helpers
+	IPushHelper pushHelper(clk, push);
+	IPopHelper  popHelper(clk, pop);
 	
-initial begin
-
-	@(posedge clk)
-	clk = '1;	rst = '1; pop.master.request = '0;
-	{rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
+  initial begin
+    clk = '1;	rst = '1; 
+    {rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
-	@(posedge clk)
-	rst = '0;
+	  #2	rst = '0;
+    pushHelper.doPush(16'hABCD);
+    pushHelper.doPush(16'hEF01);
+    pushHelper.doPush(16'h2345);
+    pushHelper.doPush(16'h6789);
+    
+    popHelper.doPop();	
+    assert (pop.data == 16'h2345);
+    
+    popHelper.doPop();	
+    assert (pop.data == 16'h6789);
+    
+    #10 $stop;
+  end
 
-	doPush(16'hABCD);
-	doPush(16'hEF01);
-	doPush(16'h2345);
-	doPush(16'h6789);
-	doPop();	
-	doPop();	
-end
-
-always begin
-	#1  clk =  ! clk;
-end
+  always #1  clk =  ! clk;
 
 endmodule
 
-module test_ringBufferOverflow2();
+
+module test_ringBufferConcurentOverflow();
 	bit rst, clk;
 	
 	IMemory mbus();
@@ -126,69 +113,46 @@ module test_ringBufferOverflow2();
 
 	RingBuffer			#(.MEM_START_ADDR(16'h10), .MEM_END_ADDR(16'h12))
 					ringB	 (rst, clk, rcontrol[1].slave, push[1].slave, pop[1].slave, wbus[1].master, rbus[1].master);
+					
+	//test helpers
+	IPushHelper pushHelperA(clk, push[0]);
+	IPushHelper pushHelperB(clk, push[1]);
+	IPopHelper  popHelperA(clk, pop[0]);
+	IPopHelper  popHelperB(clk, pop[1]);
 	
-task doPushA(logic [15:0] data);
-	@(posedge clk)	push[0].request = '1; push[0].data	= data;
-	@(posedge clk)	push[0].request = '0;
-
-	@(push[0].done);
-endtask
-
-task doPopA();	
-	@(posedge clk)	pop[0].request = '1;
-	@(posedge clk)	pop[0].request = '0;
-
-	@(pop[0].done);
-endtask
-
-task doPushB(logic [15:0] data);
-	@(posedge clk)	push[1].request = '1; push[1].data	= data;
-	@(posedge clk)	push[1].request = '0;
-
-	@(push[1].done);
-endtask
-
-task doPopB();	
-	@(posedge clk)	pop[1].request = '1;
-	@(posedge clk)	pop[1].request = '0;
-
-	@(pop[1].done);
-endtask
-
-task doPushAB(logic [15:0] dataA, logic [15:0] dataB);
-	@(posedge clk)	push[0].request = '1; push[0].data	= dataA;
-						push[1].request = '1; push[1].data	= dataB;
-	@(posedge clk)	push[0].request = '0;
-						push[1].request = '0;
-
-	@(push[0].done);
-	@(push[1].done);
-endtask
+	initial begin
+    clk = '1;	rst = '1;
+    {rcontrol[0].open, rcontrol[0].commit, rcontrol[0].rollback} = '0;
+    {rcontrol[1].open, rcontrol[1].commit, rcontrol[1].rollback} = '0;
+    #2	rst = '0;
 	
-initial begin
+    fork
+      begin
+        pushHelperA.doPush(16'h1111);
+        pushHelperA.doPush(16'h2222);
+        pushHelperA.doPush(16'h3333);
+        pushHelperA.doPush(16'h4444);
+        pushHelperA.doPush(16'h5555);
+        pushHelperA.doPush(16'h6666);
+      end
+      begin
+        pushHelperB.doPush(16'h7777);
+        pushHelperB.doPush(16'h8888);
+      end
+    join
+    
+    fork
+      popHelperA.doPop();	
+      popHelperB.doPop();	
+    join
+    
+    assert (pop[0].data == 16'h5555);
+    assert (pop[1].data == 16'h7777);
+    
+    #10 $stop;
+  end
 
-	@(posedge clk)
-	clk = '1;	rst = '1; 
-	
-	pop[0].request = '0;
-	{rcontrol[0].open, rcontrol[0].commit, rcontrol[0].rollback} = '0;
-	pop[1].request = '0;
-	{rcontrol[1].open, rcontrol[1].commit, rcontrol[1].rollback} = '0;
-	
-	@(posedge clk)
-	rst = '0;
-	
-	doPushAB(16'hABCD,16'h2222);
-	doPushA(16'hEF01);
-	doPushA(16'h2345);
-	doPushB(16'h6789);
-	doPopA();	
-	doPopB();	
-end
-
-always begin
-	#1  clk =  ! clk;
-end
+  always #1 clk = !clk;
 
 endmodule
 
