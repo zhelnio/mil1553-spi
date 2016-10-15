@@ -1,6 +1,8 @@
 `ifndef SPI_TRANSMITTER_INCLUDE
 `define SPI_TRANSMITTER_INCLUDE
 
+
+
 interface ISpiTransmitterControl();
 	logic overflowInTQueue, overflowInRQueue;
 	
@@ -41,6 +43,6 @@ module spiIoClkGenerator(input bit rst, clk,
 			if(nextCntr == 0)
 				ioClk = !ioClk;
 		end
-	endmodule
+endmodule
 
 `endif
