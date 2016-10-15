@@ -1,12 +1,14 @@
 `timescale 10 ns/ 1 ns
 
 module test_serviceProtocolUnpacker();
+  import ServiceProtocol::*;
 	bit rst, clk;
 
 	//debug spi transmitter
 	ISpi spiBus();
-	IPushMasterDebug 		spiDebug(clk);
-	DebugSpiTransmitter 	spiTrans(rst, clk, spiDebug, spiBus);
+	IPush spiPush();
+	IPushHelper 		spiHelper(clk, spiPush);
+	DebugSpiTransmitter 	spiTrans(rst, clk, spiPush, spiBus);
 	
 	//receiver and unpacker
 	IPush spiSlaveOut();
@@ -29,24 +31,31 @@ module test_serviceProtocolUnpacker();
 	
 	//testbench
 	initial begin
-	clk = 0;
-	rst = 1;
+    clk = 0; rst = 1;
+    #2 rst = 0; 
 	
-	#2 rst = 0; 
-	  
-	begin
+    fork
+      begin
 				$display("TransmitOverSpi Start");	
 			
-				spiDebug.doPush(16'hAB00);	
-				spiDebug.doPush(16'h02A2); 
-				spiDebug.doPush(16'hEFAB); 
-				spiDebug.doPush(16'h0001); 
-				spiDebug.doPush(16'h9D4E); 
-				spiDebug.doPush(16'h0000);
+				spiHelper.doPush(16'hAB00);	
+				spiHelper.doPush(16'h02A2); 
+				spiHelper.doPush(16'hEFAB); 
+				spiHelper.doPush(16'h0001); 
+				spiHelper.doPush(16'h9D4E); 
+				spiHelper.doPush(16'h0000);
 			
 				$display("TransmitOverSpi End");	
 			end
-	end
+
+      begin
+        @(servProtoControl.packetStart);
+        assert( servProtoControl.moduleAddr == 8'hAB ); 
+        assert( servProtoControl.cmdCode == TCC_SEND_DATA ); //A2
+      end
+    
+    join
+  end
 	
 	always #1  clk =  ! clk;
 

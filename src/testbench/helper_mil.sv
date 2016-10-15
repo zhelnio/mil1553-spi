@@ -1,67 +1,8 @@
 `include "settings.sv"
 
-`ifndef DEBUGHELP_INCLUDE
-`define DEBUGHELP_INCLUDE
+`ifndef HELPMIL_INCLUDE
+`define HELPMIL_INCLUDE
 
-
-
-
-
-
-
-//////////////////////////////////////////////////////////
-
-//SPI helper
-interface IPushMasterDebug(input logic clk);
-	logic request, done;
-	logic [`DATAW_TOP:0]	data;
-	
-	task automatic doPush(input logic [`DATAW_TOP:0] wdata);
-		@(posedge clk)	request <= '1; data <= wdata;
-		@(posedge clk)	request <= '0;
-		
-		@(done);
-		$display("IPushMasterDebug %m <-- %h", wdata);	
-	endtask
-	
-	modport slave(input data, input request, output done);	
-endinterface
-
-module PushMasterDebugHelper(IPush push,
-									  IPushMasterDebug debug);
-	assign push.data = debug.data;
-	assign push.request = debug.request;
-	assign debug.done = push.done;
-endmodule
-
-module DebugSpiTransmitter(input bit rst, clk,
-									IPushMasterDebug pushDebug,
-									ISpi spi);
-
-	IPush transmitterMosiBus();
-	IPush transmitterMisoBus();
-	ISpiTransmitterControl transmitterControl();
-	
-	spiTransmitter spiTrans(rst, clk,
-									transmitterMosiBus, 
-									transmitterMisoBus,
-									transmitterControl,
-									spi);
-	
-	PushMasterDebugHelper helper(transmitterMosiBus, pushDebug.slave);
-	
-	always_ff @ (posedge clk) begin
-	
-		if(transmitterMisoBus.request) begin
-			$display("IPushMasterDebug %m --> %h", transmitterMisoBus.data);	
-			transmitterMisoBus.done <= '1;
-		end
-		
-		if(transmitterMisoBus.done)
-			transmitterMisoBus.done <= '0;
-	end
-
-endmodule
 
 //MIL helper
 interface IPushMilMasterDebug(input logic clk);
@@ -126,3 +67,4 @@ endmodule
 
 
 `endif 
+

@@ -16,3 +16,4 @@ work/
 *.ipinfo
 
 quartus/
+*.vstf
