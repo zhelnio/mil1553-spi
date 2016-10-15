@@ -6,4 +6,8 @@
 `define DATAW_TOP		(`DATAW_SIZE - 1)	
 `define DATAC_TOP		(`DATAC_SIZE - 1)
 
+`define ADDRW_SIZE	8
+`define ADDRW_TOP		(`ADDRW_SIZE - 1)	
+
+
 `endif

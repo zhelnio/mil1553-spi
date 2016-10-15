@@ -1,3 +1,5 @@
+`include "settings.sv"
+
 `ifndef MEMENCODER_INCLUDE
 `define MEMENCODER_INCLUDE
 
@@ -13,7 +15,7 @@ module milMemEncoder(input bit rst, clk,
 	
 	import milStd1553::*;
 	
-	logic [`IMEM_WORD_SIZE:0]	data, nextData, escData;
+	logic [`DATAW_TOP:0]	data, nextData, escData;
 	assign push.data = data;
 	
 	enum {IDLE, WORD1_LOAD, WORD1_WAIT, WORD2_LOAD, WORD2_WAIT, REPORT } State, Next;

@@ -1,78 +1,6 @@
 `timescale 10 ns/ 1 ns
 
-module RingBufferTest(input bit rst, clk,
-					 output bit out);
-	assign out = clk;
-	
-	MemoryTest 				test1();
-	ArbiterTest 			test2();
-	RingOverflowTest		test3();
-	RingOverflowTest2		test4();
-endmodule
-
-module MemoryTest();
-	bit rst, clk;
-	
-	IMemory membus();
-	AlteraMemoryWrapper mem(rst, clk, membus.memory);
-
-initial begin
-		clk = '1;	rst = '1;
-		
-#2		rst = '0;
-		membus.writer.wr_addr	= 8'h02; 
-		membus.writer.wr_data	= 16'hABCD; 
-		membus.writer.wr_enable = '1;
-		membus.reader.rd_enable = '0;
-		
-#2		membus.writer.wr_enable = '0;
-	
-#10	membus.reader.rd_addr	= 8'h02; 
-		membus.reader.rd_enable = '1;
-
-#2		membus.reader.rd_enable = '0;		
-	
-end
-
-always begin
-	#1  clk =  ! clk;
-end
-
-endmodule
-
-
-module ArbiterTest();
-	bit rst, clk;
-	
-	IMemory mbus();
-	IMemoryReader rBus();
-	IMemoryWriter wBus();
-	IArbiter abus[3:0]();
-
-	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
-	MemoryReader	reader(rst, clk, mbus.reader, rBus.slave, abus[1].client);
-	MemoryWriter	writer(rst, clk, mbus.writer, wBus.slave, abus[0].client);
-	Arbiter			arbiter(rst, clk, abus);
-	
-initial begin
-	clk = '1;	rst = '1;
-#2	rst = '0;
-
-	wBus.master.addr = 8'h02; wBus.master.request = '1; wBus.master.data	= 16'hABCD;
-	rBus.master.addr = 8'h02; rBus.master.request = '1;
-	
-#2	wBus.master.request = '0;
-	rBus.master.request = '0;
-end
-
-always begin
-	#1  clk =  ! clk;
-end
-
-endmodule
-
-
-module RingTest();
+module test_ringBuffer();
 	bit rst, clk;
 	
 	IMemory mbus();
@@ -89,41 +17,39 @@ module RingTest();
 	Arbiter			arbiter(rst, clk, abus);
 	RingBuffer		ring(rst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
 	
+	//test helpers
+	IPushHelper pushHelper(clk, push);
+	IPopHelper  popHelper(clk, pop);
+	
 	
 initial begin
-	clk = '1;	rst = '1; pop.master.request = '0;
+	clk = '1;	rst = '1; 
 	{rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
-#2	rst = '0;
+	#2	rst = '0;
 
-#2	push.master.request = '1; push.master.data	= 16'hABCD;
-#2	push.master.request = '0;
-
-	@(push.master.done);
+	pushHelper.doPush(16'hABCD);
+	pushHelper.doPush(16'h1234);
+	pushHelper.doPush(16'h5678);
 	
-#2	push.master.request = '1; push.master.data	= 16'h1234;
-#2	push.master.request = '0;
-
-	@(push.master.done);
+  popHelper.doPop();
+  assert (pop.data == 16'hABCD);
+  
+	popHelper.doPop();
+	assert (pop.data == 16'h1234);
 	
-#2	pop.master.request = '1;
-#2	pop.master.request = '0;
-
-	@(pop.master.done);
+	popHelper.doPop();
+	assert (pop.data == 16'h5678);
 	
-#2	pop.master.request = '1;
-#2	pop.master.request = '0;
+	#10 $stop;
 
-	@(pop.master.done);
 end
 
-always begin
-	#1  clk =  ! clk;
-end
+always #1  clk =  ! clk;
 
 endmodule
 
-module RingOverflowTest();
+module test_ringBufferOverflow();
 	bit rst, clk;
 	
 	IMemory mbus();
@@ -177,7 +103,7 @@ end
 
 endmodule
 
-module RingOverflowTest2();
+module test_ringBufferOverflow2();
 	bit rst, clk;
 	
 	IMemory mbus();

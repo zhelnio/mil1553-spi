@@ -9,10 +9,10 @@ interface IServiceProtocolUControl();
 	
 	modport slave(output  moduleAddr, cmdCode, dataWordNum, 
 								 packetStart, packetErr, packetEnd, 
-					  input   spiReceiverIsBusy);
+					       input   spiReceiverIsBusy);
 	modport master(input  moduleAddr, cmdCode, dataWordNum, 
 								 packetStart, packetErr, packetEnd,
-						output spiReceiverIsBusy);
+						     output spiReceiverIsBusy);
 endinterface
 
 module ServiceProtocolUnpacker(input bit rst, clk,
@@ -29,8 +29,8 @@ module ServiceProtocolUnpacker(input bit rst, clk,
 	assign {receivedHeader.addr, receivedHeader.size, receivedHeader.cmdcode} 
 		  = {headerPart.part1, headerPart.part2[15:8], decodeTccCommand(headerPart.part2[7:0])};
 		  
-	shortint unsigned receivedWordsCntr;
-	shortint unsigned crc;
+	logic[15:0] receivedWordsCntr;
+	logic[15:0] crc;
 	
 	enum {WAIT, PACKET_HEAD1, PACKET_HEAD2, 
 			PACKET_DATA, PACKET_CRC, PACKET_NUM} State, Next;

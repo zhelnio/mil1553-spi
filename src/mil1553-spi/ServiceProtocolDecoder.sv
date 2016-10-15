@@ -11,7 +11,7 @@ endinterface
 module ServiceProtocolDecoder(input bit rst, clk,
 										IPop.master 	data,
 										IPush.master 	packet,
-										IServiceProtocolEControl control);
+										IServiceProtocolDControl control);
 	
 	enum logic [4:0] {WAIT, 
 							PACKET_HEAD1_L, PACKET_HEAD1_W, 	
@@ -21,8 +21,8 @@ module ServiceProtocolDecoder(input bit rst, clk,
 							PACKET_NUM_L, PACKET_NUM_W,
 							IDLE } State, Next;
 			
-	shortint unsigned cntr;
-	shortint unsigned crc, num;
+	logic[15:0] cntr;
+	logic[15:0] crc, num;
 
 	import ServiceProtocol::*;
 	ServiceProtocolHeaderPart headerPart;
