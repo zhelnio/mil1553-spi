@@ -21,9 +21,6 @@ module test_milReceiver();
 	milTransmitter t(rst, clk, ioClk, tenable, tpush, mil, tbusy, trequest);
 	milReceiver r(rst, clk, mil, renable, rpush, rbusy);
 	
-	
-	
-	
 	initial begin
 		rst = 1; tenable = 1; renable = 1;
 		@(posedge clk);

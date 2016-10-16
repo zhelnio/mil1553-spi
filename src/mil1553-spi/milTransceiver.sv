@@ -13,7 +13,7 @@ endinterface
 module MilStd(	input bit rst, clk,
 					IPushMil.master rpush,
 					IPushMil.slave tpush,
-					IMilStd.device line,
+					IMilStd line,
 					IMilStdControl control);
 	
 	parameter T2R_DELAY = 12;
@@ -22,14 +22,10 @@ module MilStd(	input bit rst, clk,
 	
 	logic [3:0] cntr, nextCntr;
 	logic rcvEnable, rcvBusy, trEnable, trBusy, trRequest;
-	logic iline, oline;
 	logic ioClk;
 	
 	ioClkGenerator ioClkGen(rst, clk, ioClk);
-	
-	assign line.TXout = (State == TRANSMIT) ? oline : 1'b0;
-	assign line.nTXout = (State == TRANSMIT) ? !oline : 1'b0;
-	assign iline = line.RXin;
+
 	assign control.receiverBusy = rcvBusy;
 	assign control.transmitterBusy = trBusy;
 	
@@ -67,8 +63,8 @@ module MilStd(	input bit rst, clk,
 		nextCntr = (State == WAIT) ? (cntr + 1) : 0;
 	end
 	
-	milTransmitter t(rst, clk, ioClk, trEnable, tpush, oline, trBusy, trRequest);
-	milReceiver		r(rst, clk, iline, rcvEnable, rpush, rcvBusy);
+	milTransmitter t(rst, clk, ioClk, trEnable, tpush, line, trBusy, trRequest);
+	milReceiver		r(rst, clk, line, rcvEnable, rpush, rcvBusy);
 	
 endmodule	
 
