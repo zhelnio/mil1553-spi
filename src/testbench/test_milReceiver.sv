@@ -4,7 +4,7 @@ module test_milReceiver();
 	bit rst, clk, ioClk; 
 	logic line;
 	
-	logic tenable, tbusy;
+	logic tenable, tbusy, trequest;
 	logic renable, rbusy;
 	
 	import milStd1553::*;
@@ -14,8 +14,15 @@ module test_milReceiver();
 	
 	IPushMilHelper pushHelper(clk, tpush);
 	
-	milTransmitter t(rst, clk, ioClk, tenable, tpush.slave, line, tbusy);
-	milReceiver r(rst, clk, line, renable, rpush, rbusy);
+	IMilStd mil();
+	assign mil.RXin  = mil.TXout;
+	assign mil.nRXin = mil.nTXout;
+	
+	milTransmitter t(rst, clk, ioClk, tenable, tpush, mil, tbusy, trequest);
+	milReceiver r(rst, clk, mil, renable, rpush, rbusy);
+	
+	
+	
 	
 	initial begin
 		rst = 1; tenable = 1; renable = 1;

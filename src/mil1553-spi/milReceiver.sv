@@ -2,14 +2,15 @@
 `define MILRECEIVER_INCLUDE
 
 module milReceiver(input bit rst, clk,
-					 input tri0 line, enable,
+					 IMilStd.rx mil,
+					 input tri0 enable,
 					 IPushMil.master push,
 					 output logic isBusy);
 	
 	import milStd1553::*;
 	
 	logic signal;
-	assign signal = (enable) ? line : 1'b0;
+	assign signal = (enable) ? mil.RXin : 1'b0;
 	
 	logic readStrobe;
 	readStrobeGenerator strobeGen(rst, clk, signal, readStrobe);

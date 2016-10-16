@@ -4,13 +4,18 @@
 module milTransmitter(input bit rst, clk, ioClk, 
 						 input logic enable, 
 						 IPushMil.slave push,
-						 output logic line, isBusy, request);
+						 IMilStd.tx mil,
+						 output logic isBusy, request);
 						 
 	import milStd1553::*;
 	
 	logic upIoClk, downIoClk;
 	upFront		up(rst, clk, ioClk, upIoClk);
 	downFront 	down(rst, clk, ioClk, downIoClk);
+	
+	logic line;
+	assign mil.TXout = (enable) ? line : 1'b0;
+	assign mil.nTXout = (enable) ? !line : 1'b0;
 	
 	enum logic[3:0] {IDLE, LOAD, DATA, PARITY, POSTFIX1, POSTFIX2,
 						  L01, L02, H11, H12, H01, H02, L11, L12} State, Next;
@@ -22,7 +27,7 @@ module milTransmitter(input bit rst, clk, ioClk,
 	logic [3:0] cntr, nextCntr;
 	MilData	data;
 	
-	assign request = dataInQueue;
+	assign request = dataInQueue || push.request;
 	
 	always_ff @ (posedge clk) begin
 		if(rst)

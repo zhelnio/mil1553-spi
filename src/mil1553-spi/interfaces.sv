@@ -91,10 +91,12 @@ interface IMemoryWriter();
 endinterface
 
 interface IMilStd();
-	logic TXout, nTXout, RXin, nRXin;
+	tri0 TXout, nTXout, RXin, nRXin;
 	
 	modport device(input RXin, nRXin, output TXout, nTXout);
 	modport line(output RXin, nRXin, input TXout, nTXout);
+	modport rx(input RXin, nRXin);
+	modport tx(output TXout, nTXout);
 	
 endinterface
 
