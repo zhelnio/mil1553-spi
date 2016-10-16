@@ -30,7 +30,7 @@ module milReceiver(input bit rst, clk,
 		logic [2:0]		next;
 	} buffer;
 	
-	assign control.busy = | buffer[7:0];
+	assign control.busy = mil.RXin | mil.nRXin;
 	
 	logic wordReceived, parityBit;
 	MilData data;

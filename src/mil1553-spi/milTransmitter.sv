@@ -19,13 +19,12 @@ module milTransmitter(input bit rst, clk, ioClk,
 	upFront		up(rst, clk, ioClk, upIoClk);
 	downFront 	down(rst, clk, ioClk, downIoClk);
 	
-	logic line;
-	assign mil.TXout = (control.grant) ? line : 1'b0;
-	assign mil.nTXout = (control.grant) ? !line : 1'b0;
-	
 	enum logic[3:0] {IDLE, LOAD, DATA, PARITY, POSTFIX1, POSTFIX2,
 						  L01, L02, H11, H12, H01, H02, L11, L12} State, Next;
 	
+	logic line;
+	assign mil.TXout = (State != IDLE) ? line : 1'bz;
+	assign mil.nTXout = (State != IDLE) ? !line : 1'bz;
 	assign control.busy = (State != IDLE);
 	assign push.done = (State == LOAD);
 	
