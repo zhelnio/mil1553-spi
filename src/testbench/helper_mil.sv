@@ -3,13 +3,40 @@
 `ifndef HELPMIL_INCLUDE
 `define HELPMIL_INCLUDE
 
+module DebugMilTransmitter(input bit rst, clk,
+									         IPushMil.slave push,
+									         IMilStd line);
+  
+  IPushMil rpush();
+  IMilStdControl	control();
+  
+  MilStd	milStd(	rst, clk,
+							   rpush.master,
+							   push,
+							   line,
+							   control);
+  
+  always_ff @ (posedge clk) begin
+	
+		if(rpush.request) begin
+			$display("DebugMilTransmitter %m --> %h", rpush.data);	
+			rpush.done <= '1;
+		end
+		
+		if(rpush.done)
+			rpush.done <= '0;
+	end
 
+
+endmodule
+
+/*
 //MIL helper
 interface IPushMilMasterDebug(input logic clk);
 	import milStd1553::*;
 
 	logic request, done;
-	MilDecodedData	data;
+	MilData	data;
 	
 	task automatic doPush(input WordType dtype, input logic [15:0] word);
 		@(posedge clk)	request <= '1; data.dataType <= dtype; data.dataWord <= word;
@@ -64,7 +91,7 @@ module DebugMilTransmitter(input bit rst, clk,
 	
 
 endmodule
-
+*/
 
 `endif 
 

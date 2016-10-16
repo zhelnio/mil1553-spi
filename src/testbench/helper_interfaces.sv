@@ -53,5 +53,28 @@ interface IMemoryWriterHelper(input logic clk, IMemoryWriter.master writer);
 
 endinterface
 
+interface IPushMilHelper(input logic clk, IPushMil.master push);
+
+    task automatic doPush(input milStd1553::WordType	t, logic [15:0] data);
+		  @(posedge clk)	push.request <= '1; push.data.dataType	= t; push.data.dataWord = data;
+		  @(posedge clk)	push.request <= '0;
+		
+		  @(push.done);
+		  $display("IPushMilHelper %m <-- %h", push.data);	
+	  endtask
+	  
+endinterface
+
+interface IPopMilHelper(input logic clk, IPopMil.master pop);
+  
+    task automatic doPop();
+		  @(posedge clk)	pop.request <= '1;
+		  @(posedge clk)	pop.request <= '0;
+		
+		  @(pop.done);
+		  $display("IPopMilHelper %m --> %h", pop.data);	
+	  endtask
+  
+endinterface
 
 `endif

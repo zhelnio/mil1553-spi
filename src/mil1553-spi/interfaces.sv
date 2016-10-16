@@ -21,7 +21,7 @@ endinterface
 
 interface IPushMil();
 	logic request, done;
-	milStd1553::MilDecodedData	data;
+	milStd1553::MilData	data;
 	
 	modport master(output data, output request, input done);
 	modport slave(input data, input request, output done);
@@ -29,7 +29,7 @@ endinterface
 
 interface IPopMil();
 	logic request, done;
-	milStd1553::MilDecodedData	data;
+	milStd1553::MilData	data;
 	
 	modport master(input data, output request, input done);
 	modport slave(output data, input request, output done);
@@ -88,6 +88,14 @@ interface IMemoryWriter();
 
 	modport master(output addr, output data, output request, input done);
 	modport slave(input addr, input data, input request, output done);
+endinterface
+
+interface IMilStd();
+	logic TXout, nTXout, RXin, nRXin;
+	
+	modport device(input RXin, nRXin, output TXout, nTXout);
+	modport line(output RXin, nRXin, input TXout, nTXout);
+	
 endinterface
 
 `endif
