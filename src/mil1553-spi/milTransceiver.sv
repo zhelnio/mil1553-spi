@@ -14,7 +14,7 @@ module MilStd(	input bit rst, clk,
 					IPushMil.master rpush,
 					IPushMil.slave tpush,
 					IMilStd line,
-					IMilStdControl control);
+					IMilStdControl.slave control);
 	
 	parameter T2R_DELAY = 12;
 	

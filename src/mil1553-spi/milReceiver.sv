@@ -1,16 +1,23 @@
 `ifndef MILRECEIVER_INCLUDE
 `define MILRECEIVER_INCLUDE
 
+interface IMilRxControl();
+	logic grant, busy;
+
+	modport slave(input grant, output busy);
+	modport master(output grant, input busy);
+
+endinterface
+
 module milReceiver(input bit rst, clk,
 					 IMilStd.rx mil,
-					 input tri0 enable,
 					 IPushMil.master push,
-					 output logic isBusy);
+					 IMilRxControl.slave control);
 	
 	import milStd1553::*;
 	
 	logic signal;
-	assign signal = (enable) ? mil.RXin : 1'b0;
+	assign signal = (control.grant) ? mil.RXin : 1'b0;
 	
 	logic readStrobe;
 	readStrobeGenerator strobeGen(rst, clk, signal, readStrobe);
@@ -23,7 +30,7 @@ module milReceiver(input bit rst, clk,
 		logic [2:0]		next;
 	} buffer;
 	
-	assign isBusy = | buffer[7:0];
+	assign control.busy = | buffer[7:0];
 	
 	logic wordReceived, parityBit;
 	MilData data;

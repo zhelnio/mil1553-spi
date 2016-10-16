@@ -2,11 +2,7 @@
 
 module test_milReceiver();
 	bit rst, clk, ioClk; 
-	logic line;
-	
-	logic tenable, tbusy, trequest;
-	logic renable, rbusy;
-	
+
 	import milStd1553::*;
 	
 	IPushMil tpush();
@@ -18,16 +14,22 @@ module test_milReceiver();
 	assign mil.RXin  = mil.TXout;
 	assign mil.nRXin = mil.nTXout;
 	
-	milTransmitter t(rst, clk, ioClk, tenable, tpush, mil, tbusy, trequest);
-	milReceiver r(rst, clk, mil, renable, rpush, rbusy);
+	IMilTxControl tcontrol();
+	milTransmitter t(rst, clk, ioClk, tpush, mil, tcontrol);
+	
+	IMilRxControl rcontrol();
+	milReceiver r(rst, clk, mil, rpush, rcontrol);
 	
 	initial begin
-		rst = 1; tenable = 1; renable = 1;
+		rst = 1; 
 		@(posedge clk);
 		@(posedge clk);
 		rst = 0;
 		
 		fork
+		  #300 rcontrol.grant = 1;
+		  #600 tcontrol.grant = 1;
+		
 		  begin
 		    pushHelper.doPush(WCOMMAND, 16'hEFAB);
 		    pushHelper.doPush(WDATA, 16'h02A1);
@@ -41,7 +43,7 @@ module test_milReceiver();
         assert( rpush.data.dataWord == 16'h02A1);
 		  end
 		  
-		  #10000 $stop;
+		  #11000 $stop;
 		join
 	end
 	

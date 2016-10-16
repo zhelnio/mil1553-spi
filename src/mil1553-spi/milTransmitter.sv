@@ -1,33 +1,39 @@
 `ifndef MILTRANSMITTER_INCLUDE
 `define MILTRANSMITTER_INCLUDE
 
+interface IMilTxControl();
+	logic grant, busy, request;
+
+	modport slave(input grant, output busy, request);
+	modport master(output grant, input busy, request);
+
+endinterface
+
 module milTransmitter(input bit rst, clk, ioClk, 
-						 input logic enable, 
-						 IPushMil.slave push,
-						 IMilStd.tx mil,
-						 output logic isBusy, request);
-						 
-	import milStd1553::*;
+						          IPushMil.slave push,
+						          IMilStd.tx mil,
+						          IMilTxControl.slave control);
+  import milStd1553::*;
 	
 	logic upIoClk, downIoClk;
 	upFront		up(rst, clk, ioClk, upIoClk);
 	downFront 	down(rst, clk, ioClk, downIoClk);
 	
 	logic line;
-	assign mil.TXout = (enable) ? line : 1'b0;
-	assign mil.nTXout = (enable) ? !line : 1'b0;
+	assign mil.TXout = (control.grant) ? line : 1'b0;
+	assign mil.nTXout = (control.grant) ? !line : 1'b0;
 	
 	enum logic[3:0] {IDLE, LOAD, DATA, PARITY, POSTFIX1, POSTFIX2,
 						  L01, L02, H11, H12, H01, H02, L11, L12} State, Next;
 	
-	assign isBusy = (State != IDLE);
+	assign control.busy = (State != IDLE);
 	assign push.done = (State == LOAD);
 	
 	logic dataInQueue, parityBit;
 	logic [3:0] cntr, nextCntr;
 	MilData	data;
 	
-	assign request = dataInQueue || push.request;
+	assign control.request = dataInQueue || control.busy;
 	
 	always_ff @ (posedge clk) begin
 		if(rst)
@@ -87,7 +93,7 @@ module milTransmitter(input bit rst, clk, ioClk,
 	
 		Next = State;
 		unique case(State)
-			IDLE:	if(dataInQueue && upIoClk && enable) Next = LOAD;
+			IDLE:	if(dataInQueue && upIoClk && control.grant) Next = LOAD;
 			LOAD:	unique case(data.dataType)
 						WERROR:		Next = IDLE;
 						WDATA: 		Next = L01;
