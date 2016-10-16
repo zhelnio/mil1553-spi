@@ -11,23 +11,23 @@ module test_serviceProtocolUnpacker();
 	DebugSpiTransmitter 	spiTrans(rst, clk, spiPush, spiBus);
 	
 	//receiver and unpacker
-	IPush spiSlaveOut();
-	IPush spiSlaveIn();
-	ISpiReceiverControl spiReceiverControl();
+	IPush spiOut();
+	IPush spiIn();
+	ISpiReceiverControl spiControl();
 	
 	spiReceiver spiR(rst, clk, 
-						  spiSlaveOut.slave, 
-						  spiSlaveIn.master, 
-						  spiReceiverControl.slave,
+						  spiOut.slave, 
+						  spiIn.master, 
+						  spiControl.slave,
 						  spiBus.slave);	
 				  
-	IPush milBusDecoded();
-	IServiceProtocolUControl servProtoControl();
+	IPush unpackerOut();
+	IServiceProtocolUControl unpackerControl();
 				  
 	ServiceProtocolUnpacker serviceUnpacker(rst, clk, 
-															spiSlaveIn.slave,
-															milBusDecoded.master,
-															servProtoControl.slave);
+															spiIn.slave,
+															unpackerOut.master,
+															unpackerControl.slave);
 	
 	//testbench
 	initial begin
@@ -49,10 +49,19 @@ module test_serviceProtocolUnpacker();
 			end
 
       begin
-        @(servProtoControl.packetStart);
-        assert( servProtoControl.moduleAddr == 8'hAB ); 
-        assert( servProtoControl.cmdCode == TCC_SEND_DATA ); //A2
+        @(unpackerControl.packetStart);
+        assert( unpackerControl.moduleAddr == 8'hAB ); 
+        assert( unpackerControl.cmdCode == TCC_SEND_DATA ); //A2
       end
+      
+      begin
+        @(posedge unpackerOut.request);
+        assert( unpackerOut.data == 16'hEFAB ); 
+        @(posedge unpackerOut.request);
+        assert( unpackerOut.data == 16'h0001 );
+      end
+      
+      #4000 $stop;
     
     join
   end

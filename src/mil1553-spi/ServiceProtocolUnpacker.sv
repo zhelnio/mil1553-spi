@@ -52,8 +52,8 @@ module ServiceProtocolUnpacker(input bit rst, clk,
 	always_ff @ (posedge clk) begin
 		if(receivedData.request) begin
 			unique case(Next)
-				WAIT:				crc <= '0; 							
-				PACKET_HEAD1:	begin headerPart.part1 <= receivedData.data; crc <= crc + receivedData.data; end
+				WAIT:			      crc <= '0; 							
+				PACKET_HEAD1:	begin headerPart.part1 <= receivedData.data; crc <= receivedData.data; end
 				PACKET_HEAD2:	begin headerPart.part2 <= receivedData.data; crc <= crc + receivedData.data; end
 				
 				PACKET_DATA:	begin
