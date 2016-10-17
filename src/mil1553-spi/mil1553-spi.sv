@@ -77,12 +77,12 @@ module MilSpiCore	(	input logic rst, clk,							ISpi spi,	IMilStd mil,
 		
 	always_comb begin
 		case(commandCode)
-			default: 			conf = 5'b01100;
-			TCC_UNKNOWN:		conf = 5'b01100;
-			TCC_RESET:			conf = 5'b01100;	// сброс устройства
-			TCC_SEND_DATA:		conf = 5'b11100;	// отправить в Mil данные
-			TCC_RECEIVE_STS:	conf = 5'b00111;	// отправить в Spi слово статуса
-			TCC_RECEIVE_DATA:	conf = 5'b00010;	// отправить в Spi все данные, полученные из Mil
+			default: 			       conf = 5'b01100;
+			TCC_UNKNOWN:		     conf = 5'b01100;
+			TCC_RESET:			      conf = 5'b01100;	// device reset
+			TCC_SEND_DATA:		   conf = 5'b11100;	// send data to mil
+			TCC_RECEIVE_STS:	  conf = 5'b00111;	// send status to spi
+			TCC_RECEIVE_DATA:  conf = 5'b00010;	// send all the received data to spi
 		endcase
 	end
 	
