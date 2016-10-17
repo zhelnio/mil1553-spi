@@ -1,5 +1,5 @@
-`ifndef BUSELEMENTS_INCLUDE
-`define BUSELEMENTS_INCLUDE
+`ifndef CONTROLBUS_INCLUDE
+`define CONTROLBUS_INCLUDE
 
 //get from IPop and push to IPush
 module BusPusher(	input bit rst, clk,
