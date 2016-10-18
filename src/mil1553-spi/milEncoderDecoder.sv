@@ -1,7 +1,7 @@
 `include "settings.sv"
 
-`ifndef MEMENCODER_INCLUDE
-`define MEMENCODER_INCLUDE
+`ifndef MILENDECODER_INCLUDE
+`define MILENDECODER_INCLUDE
 
 `define ESC_WERROR	16'hFFA0
 `define ESC_WCOMMAND	16'hFFA1
@@ -68,7 +68,7 @@ module milMemEncoder(input bit rst, clk,
 endmodule
 
 
-module MemMilEncoder(input bit rst, clk,
+module memMilEncoder(input bit rst, clk,
 							IPushMil.master mil,
 							IPush.slave push);
 	

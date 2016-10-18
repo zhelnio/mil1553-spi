@@ -9,7 +9,7 @@ interface ISpiReceiverControl();
 endinterface
 
 
-module spiReceiver(input  bit rst, clk,
+module SpiReceiver(input  bit rst, clk,
 						 IPush.slave 	transmitBus,
 						 IPush.master 	receiveBus,
 						 ISpiReceiverControl.slave controlBus,

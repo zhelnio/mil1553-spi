@@ -2,104 +2,106 @@
 `define SP_DECODER_INCLUDE
 
 interface IServiceProtocolDControl();
-	logic[7:0] 	moduleAddr;
-	logic[15:0] size;
+	logic[7:0] 	moduleAddr, dataWordNum;
 	ServiceProtocol::TCommandCode 	cmdCode;
-	logic enable;
+	
+	logic packetStart, packetErr, packetEnd, spiReceiverIsBusy;
+	
+	modport slave(output  moduleAddr, cmdCode, dataWordNum, 
+								 packetStart, packetErr, packetEnd, 
+					       input   spiReceiverIsBusy);
+	modport master(input  moduleAddr, cmdCode, dataWordNum, 
+								 packetStart, packetErr, packetEnd,
+						     output spiReceiverIsBusy);
 endinterface
 
 module ServiceProtocolDecoder(input bit rst, clk,
-										IPop.master 	data,
-										IPush.master 	packet,
-										IServiceProtocolDControl control);
-	
-	enum logic [4:0] {WAIT, 
-							PACKET_HEAD1_L, PACKET_HEAD1_W, 	
-							PACKET_HEAD2_L, PACKET_HEAD2_W,
-							PACKET_DATA_LR, PACKET_DATA_LW, PACKET_DATA_SR, PACKET_DATA_SW, 
-							PACKET_CRC_L, PACKET_CRC_W,
-							PACKET_NUM_L, PACKET_NUM_W,
-							IDLE } State, Next;
-			
-	logic[15:0] cntr;
-	logic[15:0] crc, num;
-
+										IPush.slave receivedData,
+										IPush.master decodedBus,
+										IServiceProtocolDControl.slave control);
 	import ServiceProtocol::*;
+	
+	assign receivedData.done = decodedBus.done;
+	
+	ServiceProtocolHeader receivedHeader;
 	ServiceProtocolHeaderPart headerPart;
-	
-	always_ff @ (posedge clk)
-	if(rst)
-		State <= WAIT;
-	else
-		State <= Next;
 
-	always_ff @ (posedge clk) begin
-		if(rst)
-			num <= 0;
+	assign {receivedHeader.addr, receivedHeader.size, receivedHeader.cmdcode} 
+		  = {headerPart.part1, headerPart.part2[15:8], decodeTccCommand(headerPart.part2[7:0])};
+		  
+	logic[15:0] receivedWordsCntr;
+	logic[15:0] crc;
 	
-		if(Next == PACKET_HEAD1_L) begin
-			crc <= '0;
-			cntr <= control.size;
-			{headerPart.part1, headerPart.part2} <= {control.moduleAddr, control.size, control.cmdCode};
+	enum {WAIT, PACKET_HEAD1, PACKET_HEAD2, 
+			PACKET_DATA, PACKET_CRC, PACKET_NUM} State, Next;
+	
+	always_ff @ (posedge clk) begin
+		if(rst | !control.spiReceiverIsBusy)
+			State <= WAIT;
+		else if(receivedData.request) 
+			State <= Next;
+	end
+	
+	
+	
+	assign decodedBus.data = (State == PACKET_DATA) ? receivedData.data : 'z;
+	assign control.dataWordNum = (State == PACKET_DATA || State == PACKET_CRC) ? receivedWordsCntr : 'z;
+	assign control.moduleAddr = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.addr : 'z;
+	assign control.cmdCode = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.cmdcode : TCC_UNKNOWN;
+	
+	always_ff @ (posedge clk) begin
+		if(receivedData.request) begin
+			unique case(Next)
+				WAIT:			      crc <= '0; 							
+				PACKET_HEAD1:	begin headerPart.part1 <= receivedData.data; crc <= receivedData.data; end
+				PACKET_HEAD2:	begin headerPart.part2 <= receivedData.data; crc <= crc + receivedData.data; end
+				
+				PACKET_DATA:	begin
+										if(State == PACKET_HEAD2) begin
+											receivedWordsCntr <= 0;
+											control.packetStart <= 1;
+											end
+										else
+											receivedWordsCntr <= receivedWordsCntr + 1;
+
+										decodedBus.request <= 1;
+										crc <= crc + receivedData.data;
+									end
+										
+				PACKET_CRC:		begin
+										receivedHeader.crc = receivedData.data;
+										if(crc == receivedData.data)
+											control.packetEnd <= 1;
+										else
+											control.packetErr <= 1;
+									end
+				PACKET_NUM:		receivedHeader.num <= receivedData.data;
+			endcase
 		end
 		
-		if(State == PACKET_HEAD1_L)
-			num <= num + 1;
+		if(State == WAIT)
+			{control.packetStart, control.packetEnd, control.packetErr, decodedBus.request} <= '0; 
 		
-		if(Next == PACKET_DATA_LR)
-			cntr <= cntr - 1;
+		if({control.packetStart, control.packetEnd, control.packetErr, decodedBus.request} != '0)
+			{control.packetStart, control.packetEnd, control.packetErr, decodedBus.request} <= '0;
 		
-		if(State == PACKET_HEAD1_L || State == PACKET_HEAD2_L || State == PACKET_DATA_SR) 
-			crc <= crc + packet.data;
-	end
-
-	
-	always_comb begin
-		case(State)
-			WAIT:					{data.request, packet.request, packet.data} = '0;
-			PACKET_HEAD1_L:	{data.request, packet.request, packet.data} = { 2'b01, headerPart.part1 };
-			PACKET_HEAD1_W: 	{data.request, packet.request, packet.data} = { 2'b00, headerPart.part1 };
-			PACKET_HEAD2_L:	{data.request, packet.request, packet.data} = { 2'b01, headerPart.part2 };
-			PACKET_HEAD2_W:	{data.request, packet.request, packet.data} = { 2'b00, headerPart.part2 };
-			PACKET_DATA_LR:	begin {data.request, packet.request} = 2'b10; packet.data = 'x; end
-			PACKET_DATA_LW:	begin {data.request, packet.request} = 2'b00; packet.data = 'x; end
-			PACKET_DATA_SR:	{data.request, packet.request, packet.data} = { 2'b01, data.data };
-			PACKET_DATA_SW:	{data.request, packet.request, packet.data} = { 2'b00, data.data };
-			PACKET_CRC_L:		{data.request, packet.request, packet.data} = { 2'b01, crc };
-			PACKET_CRC_W:		{data.request, packet.request, packet.data} = { 2'b00, crc };
-			PACKET_NUM_L:		{data.request, packet.request, packet.data} = { 2'b01, num };
-			PACKET_NUM_W:		{data.request, packet.request, packet.data} = { 2'b00, num };
-			IDLE:					{data.request, packet.request, packet.data} = '0;
-		endcase
 	end
 	
 	always_comb begin
 		Next = State;
-		if(!control.enable)
-			Next = WAIT;
-		else
-			unique case(State)
-				WAIT:					if(control.enable)Next = PACKET_HEAD1_L;
-				PACKET_HEAD1_L:	Next = PACKET_HEAD1_W;
-				PACKET_HEAD1_W:	if(packet.done) Next = PACKET_HEAD2_L;
-				PACKET_HEAD2_L:	Next = PACKET_HEAD2_W;
-				PACKET_HEAD2_W:	if(packet.done) Next = PACKET_DATA_LR;
-				PACKET_DATA_LR:	Next = PACKET_DATA_LW;
-				PACKET_DATA_LW:	if(data.done) Next = PACKET_DATA_SR;
-				PACKET_DATA_SR:	Next = PACKET_DATA_SW;
-				PACKET_DATA_SW:	if(packet.done) Next = (cntr == '0) ? PACKET_CRC_L : PACKET_DATA_LR;
-				PACKET_CRC_L:		Next = PACKET_CRC_W;
-				PACKET_CRC_W:		if(packet.done) Next = PACKET_NUM_L;
-				PACKET_NUM_L:		Next = PACKET_NUM_W;
-				PACKET_NUM_W:		if(packet.done) Next = IDLE;
-				IDLE:	;
-			endcase
+		unique case(State)
+			WAIT:				Next = PACKET_HEAD1;
+			PACKET_HEAD1:	Next = PACKET_HEAD2;
+			PACKET_HEAD2:	if(receivedHeader == TCC_UNKNOWN) Next = WAIT;
+								else if(receivedHeader.size == 0) Next = PACKET_CRC;
+								else Next = PACKET_DATA;
+
+			PACKET_DATA:	if(receivedWordsCntr == (receivedHeader.size - 1)) Next = PACKET_CRC;
+			PACKET_CRC:		Next = PACKET_NUM;
+			PACKET_NUM:		Next = PACKET_HEAD1;
+		endcase
 	end
 
-endmodule
-
-
-
-
+endmodule 
 
 `endif

@@ -1,7 +1,7 @@
 `ifndef MILTRANSCEIVER_INCLUDE
 `define MILTRANSCEIVER_INCLUDE
 
-interface IMilTransceiverControl();
+interface IMilControl();
 	logic receiverBusy, transmitterBusy;
 	logic packetStart, packetEnd;
 	
@@ -14,7 +14,7 @@ module milTransceiver(	input bit rst, clk,
 					             IPushMil.master rpush,
 					 	           IPushMil.slave tpush,
 					             IMilStd mil,
-					             IMilTransceiverControl.slave control);
+					             IMilControl.slave control);
 	
 	parameter T2R_DELAY = 12;
 	

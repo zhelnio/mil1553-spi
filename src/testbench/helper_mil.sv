@@ -8,7 +8,7 @@ module DebugMilTransmitter(input bit rst, clk,
 									         IMilStd mil);
 							   
   IPushMil rpush();
-  IMilTransceiverControl control();
+  IMilControl control();
   milTransceiver tr(rst, clk, rpush, push, mil, control);
   
   always_ff @ (posedge clk) begin

@@ -10,12 +10,12 @@ module test_milTransceiver();
 
   IPushMil rpush0();
   IPushMil tpush0();
-  IMilTransceiverControl control0();
+  IMilControl control0();
   milTransceiver tr0(rst, clk, rpush0, tpush0, mil, control0);
   
   IPushMil rpush1();
   IPushMil tpush1();
-  IMilTransceiverControl control1();
+  IMilControl control1();
   milTransceiver tr1(rst, clk, rpush1, tpush1, mil, control1);
   
   IPushMilHelper pushHelper0(clk, tpush0);
