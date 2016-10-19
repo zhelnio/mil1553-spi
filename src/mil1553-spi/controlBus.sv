@@ -37,23 +37,23 @@ endmodule
 
 module BusMux( input bit rst, clk,
 					input logic	[1:0] key,
-					IPop.slave	in,
-					IPop.master	out0,
-					IPop.master	out1);
+					IPop.slave	out,
+					IPop.master	in0,
+					IPop.master	in1);
 	
 	always_comb begin	
 		case(key)
 			2'b00: begin
-						{in.data, in.done, out0.request} = {out0.data, out0.done, in.request};
-						out1.request = '0;
+						{out.data, out.done, in0.request} = {in0.data, in0.done, out.request};
+						in1.request = '0;
 					 end
 			2'b01: begin
-						{in.data, in.done, out1.request} = {out1.data, out1.done, in.request};
-						out0.request = '0;
+						{out.data, out.done, in1.request} = {in1.data, in1.done, out.request};
+						in0.request = '0;
 					 end
 			default: begin
-					{in.done, out0.request, out1.request} = '0;
-					in.data = 'x;
+					{out.done, in0.request, in1.request} = '0;
+					out.data = 'x;
 					end
 		endcase
 	end

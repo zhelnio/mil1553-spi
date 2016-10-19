@@ -5,15 +5,19 @@ interface IStatusInfoControl();
 	logic enable;
 	logic [15:0] 	statusWord0;
 	logic [15:0] 	statusWord1;
+	logic [1:0]   statusSize;
 	
-	modport slave	(input enable, statusWord0, statusWord1 );
-	modport master(output enable, statusWord0, statusWord1 );
-
+	modport slave	(input  enable, statusWord0, statusWord1,
+	               output statusSize);
+	modport master(output enable, statusWord0, statusWord1, 
+                 input  statusSize);
 endinterface
 
 module StatusInfo(input bit rst, clk,
-						IPop.slave			 out,
-						IStatusInfoControl control);
+						      IPop.slave			 out,
+						      IStatusInfoControl.slave control);
+	
+	assign control.statusSize = 2;
 	
 	enum logic [2:0] {IDLE, SW0_L, SW0_S, SW1_L, SW1_S } Next, State;
 	
