@@ -2,13 +2,13 @@
 `define CONTROLRESET_INCLUDE
 
 module ResetGenerator(input bit rst, clk, 
-							 input logic rst0,
-							 output logic orst);
+							 input logic resetRequest,
+							 output logic resetSignal);
 	parameter pause = 16;
 	logic [3:0] pauseCntr, nextCntr;
 	logic [2:0] buffer;
 	
-	assign orst = (pauseCntr != '0) | rst;
+	assign resetSignal = (pauseCntr != '0) | rst;
 	
 	always_ff @ (posedge clk) begin
 		if(rst) begin
@@ -16,7 +16,7 @@ module ResetGenerator(input bit rst, clk,
 			pauseCntr	<= '0;
 			end
 		else begin
-			buffer		<= {buffer[1:0], rst0};
+			buffer		<= {buffer[1:0], resetRequest};
 			pauseCntr 	<= nextCntr;
 		end
 	end

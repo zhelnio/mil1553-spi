@@ -4,26 +4,29 @@ module test_memoryBlock();
 	bit rst, clk;
 	
 	IMemory mbus();
-	IRingBufferControl rcontrol[1:0]();
-	IPush	push[1:0]();
-	IPop	pop[1:0]();
+	IRingBufferControl rcontrol0();
+	IRingBufferControl rcontrol1();
+	IPush	push0();
+	IPush	push1();
+	IPop	pop0();
+	IPop	pop1();
 	
 	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
 	MemoryBlock			  memBlock(rst, clk, 
-	                         push[0], push[1], 
-	                         pop[0], pop[1], 
-	                         rcontrol, mbus);
+	                         push0, push1, 
+	                         pop0, pop1, 
+	                         rcontrol0, rcontrol1, mbus);
 	                         
 	//test helpers
-	IPushHelper pushHelperA(clk, push[0]);
-	IPushHelper pushHelperB(clk, push[1]);
-	IPopHelper  popHelperA(clk, pop[0]);
-	IPopHelper  popHelperB(clk, pop[1]);
+	IPushHelper pushHelperA(clk, push0);
+	IPushHelper pushHelperB(clk, push1);
+	IPopHelper  popHelperA(clk, pop0);
+	IPopHelper  popHelperB(clk, pop1);
 	
 	initial begin
     clk = '1;	rst = '1;
-    {rcontrol[0].open, rcontrol[0].commit, rcontrol[0].rollback} = '0;
-    {rcontrol[1].open, rcontrol[1].commit, rcontrol[1].rollback} = '0;
+    {rcontrol0.open, rcontrol0.commit, rcontrol0.rollback} = '0;
+    {rcontrol1.open, rcontrol1.commit, rcontrol1.rollback} = '0;
     #2	rst = '0;
 	
     fork
@@ -46,8 +49,8 @@ module test_memoryBlock();
       popHelperB.doPop();	
     join
     
-    assert (pop[0].data == 16'h1111);
-    assert (pop[1].data == 16'h7777);
+    assert (pop0.data == 16'h1111);
+    assert (pop1.data == 16'h7777);
     
     #10 $stop;
   end                       

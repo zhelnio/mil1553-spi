@@ -1,15 +1,15 @@
-`ifndef MILSPICORE_INCLUDE
-`define MILSPICORE_INCLUDE
+`ifndef MILSPIBLOCK_INCLUDE
+`define MILSPIBLOCK_INCLUDE
 
-module MilSpiCore	(	input logic rst, clk,							
+module MilSpiBlock	(	input logic rst, clk,							
                     ISpi spi,	
                     IMilStd mil,
-							      IPush.master pushToMem0, 	 //from mil
-							      IPush.master pushToMem1,   //from spi
-							      IPop.master		popFromMem0, 	//to spi
-							      IPop.master  popFromMem1,  //to mil
-							      IRingBufferControl.master rcontrol0,
-							      IRingBufferControl.master rcontrol1,
+							      IPush.master pushFromMil, 	 //from mil
+							      IPush.master pushFromSpi,   //from spi
+							      IPop.master		popToSpi, 	    //to spi
+							      IPop.master  popToMil,      //to mil
+							      IRingBufferControl.master rcontrolMS, // mil -> spi
+							      IRingBufferControl.master rcontrolSM, // spi -> mil
 							      output logic resetRequest);
 
 	parameter blockAddr = 8'hAB;
@@ -30,7 +30,7 @@ module MilSpiCore	(	input logic rst, clk,
   
   //mil -> mem
   LinkMil linkMil(.rst(rst), .clk(clk),
-                  .pushFromMil(pushToMem0),     
+                  .pushFromMil(pushFromMil),     
                   .pushToMil(tMilPush),         
                   .milControl(milControl.slave),
                   .mil(mil));
@@ -39,7 +39,7 @@ module MilSpiCore	(	input logic rst, clk,
   BusPusher busPusher(.rst(rst), .clk(clk),
                       .enable(enablePushToMil),
                       .push(tMilPush.master),
-                      .pop(popFromMem1));                
+                      .pop(popToMil));                
   
   LinkSpi linkSpi(.rst(rst), .clk(clk),
                   .spi(spi.slave),
@@ -51,13 +51,13 @@ module MilSpiCore	(	input logic rst, clk,
   BusGate busGate(.rst(rst), .clk(clk),
                   .enable(enablePushFromSpi),
                   .in(rSpiPush.slave),
-                  .out(pushToMem1));
+                  .out(pushFromSpi));
                   
   //spi <- busMux(muxKeyPopToSpi) <= mem, status
   BusMux busMus(.rst(rst), .clk(clk),
                 .key(muxKeyPopToSpi),
                 .out(tSpiPop.slave),
-                .in0(popFromMem0),
+                .in0(popToSpi),
                 .in1(tStatPop.master));
   
   //status word generator
@@ -66,8 +66,8 @@ module MilSpiCore	(	input logic rst, clk,
                         .control(statusControl));
   
   //control interfaces
-  assign statusControl.statusWord0 = rcontrol0.memUsed;
-	assign statusControl.statusWord1 = rcontrol1.memUsed;
+  assign statusControl.statusWord0 = rcontrolMS.memUsed;
+	assign statusControl.statusWord1 = rcontrolSM.memUsed;
 
 	//command processing 
 	logic [4:0] conf;
@@ -82,8 +82,8 @@ module MilSpiCore	(	input logic rst, clk,
 	always_ff @ (posedge clk) begin
 		if(rst) begin
 			resetRequest <= 0;
-			{rcontrol0.open, rcontrol0.commit, rcontrol0.rollback} = '0;
-			{rcontrol1.open, rcontrol1.commit, rcontrol1.rollback} = '0;
+			{rcontrolMS.open, rcontrolMS.commit, rcontrolMS.rollback} = '0;
+			{rcontrolSM.open, rcontrolSM.commit, rcontrolSM.rollback} = '0;
 		end
 			
 		if(commandCode == TCC_RESET)
@@ -105,7 +105,7 @@ module MilSpiCore	(	input logic rst, clk,
 		case(commandCode)
 			default:				       spiControl.spiTransmitDataSize = '0;
 			TCC_RECEIVE_STS:	  spiControl.spiTransmitDataSize = statusControl.statusSize;
-			TCC_RECEIVE_DATA:	 spiControl.spiTransmitDataSize = rcontrol0.memUsed;	
+			TCC_RECEIVE_DATA:	 spiControl.spiTransmitDataSize = rcontrolMS.memUsed;	
 		endcase
 	end
 
