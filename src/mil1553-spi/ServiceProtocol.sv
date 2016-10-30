@@ -3,12 +3,12 @@
 
 package ServiceProtocol;
 
-	typedef enum logic[7:0] {	TCC_UNKNOWN 		    = 8'hFF, 
-										        TCC_RESET			      = 8'hA0, // device reset
-										        TCC_SEND_DATA		   = 8'hA2, // send data to mil
-										        TCC_RECEIVE_STS	  = 8'hB0, // send status info to spi
-										        TCC_RECEIVE_DATA	 = 8'hB2 	// send to spi all the data received from mil
-										        } TCommandCode;
+	typedef enum logic[7:0] {	TCC_UNKNOWN			= 8'hFF, 
+								TCC_RESET			= 8'hA0, 	// device reset
+								TCC_SEND_DATA		= 8'hA2, 	// send data to mil
+								TCC_RECEIVE_STS		= 8'hB0, 	// send status info to spi
+								TCC_RECEIVE_DATA	= 8'hB2		// send to spi all the data received from mil
+								} TCommandCode;
 	
 	typedef struct packed {
 		logic[7:0]  	addr;
@@ -26,11 +26,11 @@ package ServiceProtocol;
 	
 	function TCommandCode decodeTccCommand(byte cmdCode);
 		priority case (cmdCode)
-			default: 			       return TCC_UNKNOWN;
-			TCC_RESET:			      return TCC_RESET;
-			TCC_SEND_DATA:		   return TCC_SEND_DATA;
-			TCC_RECEIVE_STS:	  return TCC_RECEIVE_STS;
-			TCC_RECEIVE_DATA:	 return TCC_RECEIVE_DATA;
+			default:			return TCC_UNKNOWN;
+			TCC_RESET:			return TCC_RESET;
+			TCC_SEND_DATA:		return TCC_SEND_DATA;
+			TCC_RECEIVE_STS:	return TCC_RECEIVE_STS;
+			TCC_RECEIVE_DATA:	return TCC_RECEIVE_DATA;
 		endcase
 	endfunction
 	

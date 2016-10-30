@@ -50,16 +50,16 @@ module test_IpMilSpiSingle();
 				$display("TransmitOverSpi Start");	
 			
 				spiDebug.doPush(16'hAB00);	//addr = AB
-				spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2
-				spiDebug.doPush(16'hFFA1); 
-				spiDebug.doPush(16'h0001); 
+				spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
+				spiDebug.doPush(16'hFFA1);  //next word is WCOMMAND
+				spiDebug.doPush(16'h0001);	//WCOMMAND h0001
 				
-				spiDebug.doPush(16'h0002);
-				spiDebug.doPush(16'hAB45);
-				spiDebug.doPush(16'hFFA3);
-				spiDebug.doPush(16'hFFA1);
+				spiDebug.doPush(16'h0002);	//WDATA h0002
+				spiDebug.doPush(16'hAB45);	//WDATA hAB45
+				spiDebug.doPush(16'hFFA3);	//next word is ESC_WDATA
+				spiDebug.doPush(16'hFFA1);	//WDATA hFFA1
 				
-				spiDebug.doPush(16'h5BCF);  //check sum
+				spiDebug.doPush(16'h5BCF);	//check sum
 				spiDebug.doPush(16'h0);		//word num
 				
 				$display("TransmitOverSpi End");	

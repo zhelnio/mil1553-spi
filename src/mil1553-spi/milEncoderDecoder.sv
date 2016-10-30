@@ -3,9 +3,9 @@
 `ifndef MILENDECODER_INCLUDE
 `define MILENDECODER_INCLUDE
 
-`define ESC_WERROR	16'hFFA0
+`define ESC_WERROR		16'hFFA0
 `define ESC_WCOMMAND	16'hFFA1
-`define ESC_WSTATUS	16'hFFA2
+`define ESC_WSTATUS		16'hFFA2
 `define ESC_WDATA		16'hFFA3
 `define ESC_MASK		(14'hFFA << 2)
 
@@ -89,7 +89,7 @@ module memMilEncoder(input bit rst, clk,
 	logic isEscData;
 	assign isEscData = (push.data[15:2] == `ESC_MASK);
 	
-	logic idleState;	//непонятный баг, без этого не работает
+	logic idleState;	//strange bug, not working wout this
 	assign idleState = (State == IDLE);	
 	
 	always_ff @ (posedge clk) begin		
