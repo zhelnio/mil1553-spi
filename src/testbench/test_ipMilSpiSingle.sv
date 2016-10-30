@@ -47,7 +47,7 @@ module test_IpMilSpiSingle();
 				$display("TransmitOverSpi Start");	
 			
 				spiDebug.doPush(16'hAB00);	 //addr = AB
-				spiDebug.doPush(16'h06A2);  //size =Ä 0006, cmd = A2
+				spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2
 				spiDebug.doPush(16'hFFA1); 
 				spiDebug.doPush(16'h0001); 
 				
@@ -56,18 +56,18 @@ module test_IpMilSpiSingle();
 				spiDebug.doPush(16'hFFA3);
 				spiDebug.doPush(16'hFFA1);
 				
-				spiDebug.doPush(16'h57CF);  //check sum
+				spiDebug.doPush(16'h5BCF);  //check sum
 				spiDebug.doPush(16'h0);		   //word num
 				
 				$display("TransmitOverSpi End");	
 			end
 /*			
-			//current status requestÅ
+			//current status request
 			begin
 				$display("GetStatus Start");	
 			
 				spiDebug.doPush(16'hAB00);	 //addr = AB
-				spiDebug.doPush(16'h0AB0);  //size =Ä 000A, cmd = B0				
+				spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
 				spiDebug.doPush(16'h0);		   //blank data to receive reply
 				spiDebug.doPush(16'h0);		
 				spiDebug.doPush(16'h0);		
@@ -89,7 +89,7 @@ module test_IpMilSpiSingle();
 				$display("ReceiveOverSpi Start");	
 			
 				spiDebug.doPush(16'hAB00);	 //addr = AB
-				spiDebug.doPush(16'h0AB2);  //size =Ä 000A, cmd = B2				
+				spiDebug.doPush(16'h0AB2);  //size = 000A, cmd = B2				
 				spiDebug.doPush(16'h0);		   //blank data to receive reply
 				spiDebug.doPush(16'h0);		
 				spiDebug.doPush(16'h0);		

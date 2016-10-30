@@ -2,71 +2,71 @@
 `define MILSPIBLOCK_INCLUDE
 
 module MilSpiBlock	(	input logic rst, clk,							
-                    ISpi spi,	
-                    IMilStd mil,
-							      IPush.master pushFromMil, 	 //from mil
-							      IPush.master pushFromSpi,   //from spi
-							      IPop.master		popToSpi, 	    //to spi
-							      IPop.master  popToMil,      //to mil
-							      IRingBufferControl.master rcontrolMS, // mil -> spi
-							      IRingBufferControl.master rcontrolSM, // spi -> mil
-							      output logic resetRequest);
+						ISpi			spi,	
+						IMilStd			mil,
+						IPush.master 	pushFromMil,	//from mil
+						IPush.master 	pushFromSpi,	//from spi
+						IPop.master		popToSpi,		//to spi
+						IPop.master		popToMil,		//to mil
+						IRingBufferControl.master rcontrolMS,	// mil -> spi
+						IRingBufferControl.master rcontrolSM,	// spi -> mil
+						output logic resetRequest);
 
 	parameter blockAddr = 8'hAB;
-	
+
 	import ServiceProtocol::*;
-	
+
 	logic enablePushToMil, enablePushFromSpi;
 	logic [1:0] muxKeyPopToSpi;
 	
-  IPush tMilPush();
-  IPush rSpiPush();
-  IPop  tSpiPop();
-  IPop  tStatPop();
-  
-  IMilControl milControl();
-  ILinkSpiControl spiControl();
-  IStatusInfoControl statusControl();
-  
-  //mil -> mem
-  LinkMil linkMil(.rst(rst), .clk(clk),
-                  .pushFromMil(pushFromMil),     
-                  .pushToMil(tMilPush),         
-                  .milControl(milControl.slave),
-                  .mil(mil));
+	IPush tMilPush();
+	IPush rSpiPush();
+	IPop  tSpiPop();
+	IPop  tStatPop();
 
-  //mil <- busPusher(enablePushToMil) <- mem
-  BusPusher busPusher(.rst(rst), .clk(clk),
-                      .enable(enablePushToMil),
-                      .push(tMilPush.master),
-                      .pop(popToMil));                
+	IMilControl milControl();
+	ILinkSpiControl spiControl();
+	IStatusInfoControl statusControl();
   
-  LinkSpi linkSpi(.rst(rst), .clk(clk),
-                  .spi(spi.slave),
-                  .pushFromSpi(rSpiPush.master),
-                  .popToSpi(tSpiPop.master),
-                  .control(spiControl.slave));
-                  
-  //spi -> busGate(enablePushFromSpi) -> mem
-  BusGate busGate(.rst(rst), .clk(clk),
-                  .enable(enablePushFromSpi),
-                  .in(rSpiPush.slave),
-                  .out(pushFromSpi));
-                  
-  //spi <- busMux(muxKeyPopToSpi) <= mem, status
-  BusMux busMus(.rst(rst), .clk(clk),
-                .key(muxKeyPopToSpi),
-                .out(tSpiPop.slave),
-                .in0(popToSpi),
-                .in1(tStatPop.master));
-  
-  //status word generator
-  StatusInfo statusInfo(.rst(rst), .clk(clk),
-                        .out(tStatPop.slave),
-                        .control(statusControl));
-  
-  //control interfaces
-  assign statusControl.statusWord0 = rcontrolMS.memUsed;
+	//mil -> mem
+	LinkMil linkMil(.rst(rst), .clk(clk),
+					.pushFromMil(pushFromMil),     
+					.pushToMil(tMilPush),         
+					.milControl(milControl.slave),
+					.mil(mil));
+
+	//mil <- busPusher(enablePushToMil) <- mem
+	BusPusher busPusher(.rst(rst), .clk(clk),
+						.enable(enablePushToMil),
+						.push(tMilPush.master),
+						.pop(popToMil));                
+	
+	LinkSpi linkSpi(.rst(rst), .clk(clk),
+					.spi(spi.slave),
+					.pushFromSpi(rSpiPush.master),
+					.popToSpi(tSpiPop.master),
+					.control(spiControl.slave));
+					
+	//spi -> busGate(enablePushFromSpi) -> mem
+	BusGate busGate(.rst(rst), .clk(clk),
+					.enable(enablePushFromSpi),
+					.in(rSpiPush.slave),
+					.out(pushFromSpi));
+					
+	//spi <- busMux(muxKeyPopToSpi) <= mem, status
+	BusMux busMus(	.rst(rst), .clk(clk),
+					.key(muxKeyPopToSpi),
+					.out(tSpiPop.slave),
+					.in0(popToSpi),
+					.in1(tStatPop.master));
+	
+	//status word generator
+	StatusInfo statusInfo(	.rst(rst), .clk(clk),
+							.out(tStatPop.slave),
+							.control(statusControl));
+	
+	//control interfaces
+	assign statusControl.statusWord0 = rcontrolMS.memUsed;
 	assign statusControl.statusWord1 = rcontrolSM.memUsed;
 
 	//command processing 
@@ -74,11 +74,13 @@ module MilSpiBlock	(	input logic rst, clk,
 	
 	//module addr filter
 	TCommandCode commandCode;
-	assign commandCode = (spiControl.inputAddr == blockAddr) ? spiControl.cmdCode : TCC_UNKNOWN;
-	assign spiControl.moduleAddr = blockAddr;
+	assign commandCode = (spiControl.inAddr == blockAddr) ? spiControl.inCmdCode : TCC_UNKNOWN;
+	assign spiControl.outAddr = blockAddr;
 	
 	assign {	enablePushFromSpi, muxKeyPopToSpi, 
-	         spiControl.spiTransmitEnable, statusControl.enable} = conf;
+	         spiControl.outEnable, statusControl.enable} = conf;
+
+	assign enablePushToMil = (rcontrolSM.memUsed != 0);
 				
 	always_ff @ (posedge clk) begin
 		if(rst) begin
@@ -93,20 +95,20 @@ module MilSpiBlock	(	input logic rst, clk,
 		
 	always_comb begin
 		case(commandCode)
-			default: 			       conf = 5'b01100;
-			TCC_UNKNOWN:		     conf = 5'b01100;
-			TCC_RESET:			      conf = 5'b01100;	// device reset
-			TCC_SEND_DATA:		   conf = 5'b11100;	// send data to mil
-			TCC_RECEIVE_STS:	  conf = 5'b00111;	// send status to spi
-			TCC_RECEIVE_DATA:  conf = 5'b00010;	// send all the received data to spi
+			default:			conf = 5'b01100;
+			TCC_UNKNOWN:		conf = 5'b01100;
+			TCC_RESET:			conf = 5'b01100;	// device reset
+			TCC_SEND_DATA:		conf = 5'b11100;	// send data to mil
+			TCC_RECEIVE_STS:	conf = 5'b00111;	// send status to spi
+			TCC_RECEIVE_DATA:	conf = 5'b00010;	// send all the received data to spi
 		endcase
 	end
 	
 	always_comb begin
 		case(commandCode)
-			default:				       spiControl.spiTransmitDataSize = '0;
-			TCC_RECEIVE_STS:	  spiControl.spiTransmitDataSize = statusControl.statusSize;
-			TCC_RECEIVE_DATA:	 spiControl.spiTransmitDataSize = rcontrolMS.memUsed;	
+			default:			spiControl.outDataSize = '0;
+			TCC_RECEIVE_STS:	spiControl.outDataSize = statusControl.statusSize;
+			TCC_RECEIVE_DATA:	spiControl.outDataSize = rcontrolMS.memUsed;	
 		endcase
 	end
 
