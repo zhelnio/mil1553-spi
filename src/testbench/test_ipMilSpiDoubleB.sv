@@ -23,20 +23,20 @@ module test_IpMilSpiDoubleB();
 	DebugMilTransmitter milTrans(rst, clk, milPush, mil);
 	
 	//DUT modules
-	defparam milSpi.milSpiBlock0.SPI_BLOCK_ADDR 	= 8'hAB;
-	defparam milSpi.milSpiBlock1.SPI_BLOCK_ADDR 	= 8'hAC;
+	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR0 	= 8'hAB;
+	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR1 	= 8'hAC;
 
 	defparam milSpi.memoryBlock.RING2_0_MEM_START	= 16'h00;
-	defparam milSpi.memoryBlock.RING2_0_MEM_END	= 16'h3F;
+	defparam milSpi.memoryBlock.RING2_0_MEM_END		= 16'h3F;
 	defparam milSpi.memoryBlock.RING2_1_MEM_START	= 16'h40;
-	defparam milSpi.memoryBlock.RING2_1_MEM_END	= 16'h7F;
+	defparam milSpi.memoryBlock.RING2_1_MEM_END		= 16'h7F;
 	defparam milSpi.memoryBlock.RING2_2_MEM_START	= 16'h80;
-	defparam milSpi.memoryBlock.RING2_2_MEM_END	= 16'hBF;
+	defparam milSpi.memoryBlock.RING2_2_MEM_END		= 16'hBF;
 	defparam milSpi.memoryBlock.RING2_3_MEM_START	= 16'hC0;
-	defparam milSpi.memoryBlock.RING2_3_MEM_END	= 16'hFF;
+	defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFF;
 
-	IpMilSpiDouble milSpi(.clk(clk), .rst(rst),
-	                      .spi0(spi), .spi1(spi), 
+	IpMilSpiDoubleB milSpi(.clk(clk), .rst(rst),
+	                      .spi(spi), 
 						  .mil0(mil), .mil1(mil),
 	                      .mbus(mem));
 	                      
@@ -62,18 +62,21 @@ module test_IpMilSpiDoubleB();
 				spiDebug.doPush(16'hFFA1);	//WDATA hFFA1
 				
 				spiDebug.doPush(16'h5BCF);	//check sum
-				spiDebug.doPush(16'h0);		//word num
+				spiDebug.doPush(16'h0);	//word num
 				
 				$display("TransmitOverSpi End");	
 			end
 			
+			//wait for mil transmission end
+			#80000
+
 			//get data that was received from Mil
 			begin
 				$display("ReceiveOverSpi Start");	
 			
 				spiDebug.doPush(16'hAC00);	//addr = AC
 				spiDebug.doPush(16'h0AB2);  //size = 000A, cmd = B2				
-				spiDebug.doPush(16'h0);		//blank data to receive reply
+				spiDebug.doPush(16'h0);	//blank data to receive reply
 				spiDebug.doPush(16'h0);		
 				spiDebug.doPush(16'h0);		
 				spiDebug.doPush(16'h0);		

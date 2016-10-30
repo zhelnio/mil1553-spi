@@ -58,7 +58,64 @@ module BusMux( input bit rst, clk,
 		endcase
 	end
 endmodule	
-					
+
+module BusMux2( input bit rst, clk,
+				input logic	[2:0] key,
+				IPop.slave	out,
+				IPop.master	in0,
+				IPop.master	in1,
+				IPop.master	in2,
+				IPop.master	in3);
+	
+	always_comb begin	
+		case(key)
+			3'b000: begin
+						{out.data, out.done, in0.request} = {in0.data, in0.done, out.request};
+						{in1.request, in2.request, in3.request} = '0;
+					end
+			3'b001: begin
+						{out.data, out.done, in1.request} = {in1.data, in1.done, out.request};
+						{in0.request, in2.request, in3.request} = '0;
+					end
+			32'b010: begin
+						{out.data, out.done, in2.request} = {in2.data, in2.done, out.request};
+						{in1.request, in0.request, in3.request} = '0;
+					end
+			3'b011: begin
+						{out.data, out.done, in3.request} = {in3.data, in3.done, out.request};
+						{in1.request, in2.request, in0.request} = '0;
+					end
+			default: begin
+					{out.done, in0.request, in1.request, in2.request, in3.request} = '0;
+					out.data = 'x;
+					end
+		endcase
+	end
+endmodule	
+
+module PushMux( input bit rst, clk,
+				input logic	[1:0] key,
+				IPush.slave in,
+				IPush.master out0,
+				IPush.master out1);
+
+	always_comb begin	
+		case(key)
+			2'b00: begin
+						{out0.data, out0.request, in.done } = {in.data, in.request, out0.done };
+						{out1.data, out1.request} = '0;
+					 end
+			2'b01: begin
+						{out1.data, out1.request, in.done } = {in.data, in.request, out1.done };
+						{out0.data, out0.request} = '0;
+					 end
+			default: begin
+						{out0.request, out1.request, in.done } = '0;
+						{out0.data, out1.data} = 'x;
+					end
+		endcase
+	end
+endmodule			
 
 module BusGate(input bit rst, clk,
 					input logic 	enable,
