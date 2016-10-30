@@ -75,7 +75,8 @@ module MilSpiBlock	(	input logic rst, clk,
 	//module addr filter
 	TCommandCode commandCode;
 	assign commandCode = (spiControl.inAddr == blockAddr) ? spiControl.inCmdCode : TCC_UNKNOWN;
-	assign spiControl.outAddr = blockAddr;
+	assign spiControl.outAddr 		= blockAddr;
+	assign spiControl.outCmdCode	= commandCode;
 	
 	assign {	enablePushFromSpi, muxKeyPopToSpi, 
 	         spiControl.outEnable, statusControl.enable} = conf;
