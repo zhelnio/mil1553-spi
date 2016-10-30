@@ -23,6 +23,12 @@ module test_IpMilSpiSingle();
 	DebugMilTransmitter milTrans(rst, clk, milPush, mil);
 	
 	//DUT modules
+	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR 	= 8'hAB;
+	defparam milSpi.memoryBlock.RING1_MEM_START	= 16'h00;
+	defparam milSpi.memoryBlock.RING1_MEM_END	= 16'h7F;
+  	defparam milSpi.memoryBlock.RING2_MEM_START	= 16'h80;
+  	defparam milSpi.memoryBlock.RING2_MEM_END	= 16'hFF;
+
 	IpMilSpiSingle milSpi(.clk(clk), .rst(rst),
 	                      .spi(spi), .mil(mil),
 	                      .mbus(mem));

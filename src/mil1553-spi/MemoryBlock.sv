@@ -10,10 +10,10 @@
 							IRingBufferControl.slave rcontrol1,
 							IMemory 	mbus);
 							
-	parameter RING1_MEM_START	 = 16'h00;
-	parameter RING1_MEM_END	   = 16'h7F;
-  parameter RING2_MEM_START	 = 16'h80;
-  parameter RING2_MEM_END	   = 16'hFF;
+	parameter RING1_MEM_START	= 16'h00;
+	parameter RING1_MEM_END	   	= 16'h7F;
+  	parameter RING2_MEM_START	= 16'h80;
+  	parameter RING2_MEM_END		= 16'hFF;
 	
 	IMemoryReader rbus0();
 	IMemoryReader rbus1();
@@ -44,20 +44,20 @@ module MemoryBlock2(	input bit rst, clk,
 							IRingBufferControl.slave rc0, rc1, rc2, rc3,
 							IMemory 	mbus);
 	
-  parameter RING2_0_MEM_START	= 16'h0000;
-  parameter RING2_0_MEM_END		 = 16'h007F;
-  parameter RING2_1_MEM_START	= 16'h0080;
-  parameter RING2_1_MEM_END		 = 16'h00FF;
-  parameter RING2_2_MEM_START	= 16'h0100;
-  parameter RING2_2_MEM_END		 = 16'h017F;
-  parameter RING2_3_MEM_START	= 16'h0180;
-  parameter RING2_3_MEM_END		 = 16'h01FF;
+	parameter RING2_0_MEM_START	= 16'h0000;
+	parameter RING2_0_MEM_END	= 16'h007F;
+	parameter RING2_1_MEM_START	= 16'h0080;
+	parameter RING2_1_MEM_END	= 16'h00FF;
+	parameter RING2_2_MEM_START	= 16'h0100;
+	parameter RING2_2_MEM_END	= 16'h017F;
+	parameter RING2_3_MEM_START	= 16'h0180;
+	parameter RING2_3_MEM_END	= 16'h01FF;
 	
 	IMemoryReader rbus[3:0]();
 	IMemoryWriter wbus[3:0]();
 	IArbiter abus[7:0]();
 
-	Arbiter8			arbiter(rst, clk, abus);
+	Arbiter8		arbiter(rst, clk, abus);
 	MemoryWriter	writer0(rst, clk, mbus.writer, wbus[0].slave, abus[0].client);
 	MemoryWriter	writer1(rst, clk, mbus.writer, wbus[1].slave, abus[1].client);
 	MemoryWriter	writer2(rst, clk, mbus.writer, wbus[2].slave, abus[2].client);

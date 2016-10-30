@@ -1,7 +1,7 @@
-`ifndef MILSPIBLOCK_INCLUDE
-`define MILSPIBLOCK_INCLUDE
+`ifndef MILSPIBLOCK2_INCLUDE
+`define MILSPIBLOCK2_INCLUDE
 
-module MilSpiBlock	(	input logic rst, clk,							
+module MilSpiBlock2	(	input logic rst, clk,							
 						ISpi			spi,	
 						IMilStd			mil,
 						IPush.master 	pushFromMil,	//from mil

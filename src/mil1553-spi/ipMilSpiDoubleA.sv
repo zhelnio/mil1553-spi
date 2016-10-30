@@ -1,7 +1,7 @@
 `ifndef MILSPIDOUBLE_INCLUDE
 `define MILSPIDOUBLE_INCLUDE
 
-module IpMilSpiDouble(input logic clk, rst,
+module IpMilSpiDoubleA(input logic clk, rst,
                       ISpi spi0,
                       ISpi spi1,
                       IMilStd mil0,
@@ -47,7 +47,7 @@ module IpMilSpiDouble(input logic clk, rst,
                           .rcontrolSM(spiToMilRBControl1.master),
                           .resetRequest(resetRequest1));
                       
-  MemoryBlock memoryBlock2(.rst(resetSignal), .clk(clk),
+  MemoryBlock2 memoryBlock(.rst(resetSignal), .clk(clk),
                           .push0(spiToMem0.slave),
                           .push1(spiToMem1.slave),
                           .push2(milToMem0.slave),
@@ -56,10 +56,10 @@ module IpMilSpiDouble(input logic clk, rst,
                           .pop1(memToMil1.slave),
                           .pop2(memToSpi0.slave),
                           .pop3(memToSpi1.slave),
-                          .rcontrol0(spiToMilRBControl0.slave),
-                          .rcontrol1(spiToMilRBControl1.slave),
-                          .rcontrol2(milToSpiRBControl0.slave),
-                          .rcontrol3(milToSpiRBControl1.slave),
+                          .rc0(spiToMilRBControl0.slave),
+                          .rc1(spiToMilRBControl1.slave),
+                          .rc2(milToSpiRBControl0.slave),
+                          .rc3(milToSpiRBControl1.slave),
                           .mbus(mbus));
                      
 endmodule
