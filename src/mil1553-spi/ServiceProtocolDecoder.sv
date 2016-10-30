@@ -2,17 +2,17 @@
 `define SP_DECODER_INCLUDE
 
 interface IServiceProtocolDControl();
-	logic[7:0] 	moduleAddr, dataWordNum;
+	logic[7:0] 	addr, wordNum;
 	ServiceProtocol::TCommandCode 	cmdCode;
 	
-	logic packetStart, packetErr, packetEnd, spiReceiverIsBusy;
+	logic packetStart, packetErr, packetEnd, enable;
 	
-	modport slave(output  moduleAddr, cmdCode, dataWordNum, 
-								 packetStart, packetErr, packetEnd, 
-					       input   spiReceiverIsBusy);
-	modport master(input  moduleAddr, cmdCode, dataWordNum, 
-								 packetStart, packetErr, packetEnd,
-						     output spiReceiverIsBusy);
+	modport slave(	output	addr, cmdCode, wordNum, 
+							packetStart, packetErr, packetEnd, 
+					input   enable);
+	modport master(	input	addr, cmdCode, wordNum, 
+							packetStart, packetErr, packetEnd,
+					output 	enable);
 endinterface
 
 module ServiceProtocolDecoder(input bit rst, clk,
@@ -36,45 +36,51 @@ module ServiceProtocolDecoder(input bit rst, clk,
 			PACKET_DATA, PACKET_CRC, PACKET_NUM} State, Next;
 	
 	always_ff @ (posedge clk) begin
-		if(rst | !control.spiReceiverIsBusy)
+		if(rst | !control.enable)
 			State <= WAIT;
 		else if(receivedData.request) 
 			State <= Next;
 	end
 	
-	
-	
 	assign decodedBus.data = (State == PACKET_DATA) ? receivedData.data : 'z;
-	assign control.dataWordNum = (State == PACKET_DATA || State == PACKET_CRC) ? receivedWordsCntr : 'z;
-	assign control.moduleAddr = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.addr : 'z;
+	assign control.wordNum = (State == PACKET_DATA ) ? receivedWordsCntr : 'z;
+	assign control.addr = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.addr : 'z;
 	assign control.cmdCode = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.cmdcode : TCC_UNKNOWN;
 	
 	always_ff @ (posedge clk) begin
 		if(receivedData.request) begin
 			unique case(Next)
 				WAIT:			      crc <= '0; 							
-				PACKET_HEAD1:	begin headerPart.part1 <= receivedData.data; crc <= receivedData.data; end
-				PACKET_HEAD2:	begin headerPart.part2 <= receivedData.data; crc <= crc + receivedData.data; end
+				PACKET_HEAD1:	begin 
+									headerPart.part1 <= receivedData.data; 
+									crc <= receivedData.data; 
+									receivedWordsCntr <= 0; 
+								end
+
+				PACKET_HEAD2:	begin 
+									headerPart.part2 <= receivedData.data; 
+									crc <= crc + receivedData.data; 
+								end
 				
 				PACKET_DATA:	begin
-										if(State == PACKET_HEAD2) begin
-											receivedWordsCntr <= 0;
-											control.packetStart <= 1;
-											end
-										else
-											receivedWordsCntr <= receivedWordsCntr + 1;
+									if(State == PACKET_HEAD2) 										
+										control.packetStart <= 1;
+									else
+										receivedWordsCntr <= receivedWordsCntr + 1;
 
-										decodedBus.request <= 1;
-										crc <= crc + receivedData.data;
-									end
+									decodedBus.request <= 1;
+									crc <= crc + receivedData.data;
+								end
 										
 				PACKET_CRC:		begin
-										receivedHeader.crc = receivedData.data;
+									receivedHeader.crc = receivedData.data;
+									if(receivedWordsCntr != 0) begin
 										if(crc == receivedData.data)
 											control.packetEnd <= 1;
 										else
 											control.packetErr <= 1;
 									end
+								end
 				PACKET_NUM:		receivedHeader.num <= receivedData.data;
 			endcase
 		end
@@ -90,7 +96,7 @@ module ServiceProtocolDecoder(input bit rst, clk,
 	always_comb begin
 		Next = State;
 		unique case(State)
-			WAIT:				Next = PACKET_HEAD1;
+			WAIT:			Next = PACKET_HEAD1;
 			PACKET_HEAD1:	Next = PACKET_HEAD2;
 			PACKET_HEAD2:	if(receivedHeader == TCC_UNKNOWN) Next = WAIT;
 								else if(receivedHeader.size == 0) Next = PACKET_CRC;

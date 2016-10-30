@@ -3,35 +3,37 @@
 
 
 interface ILinkSpiControl();
-  //from ISpiReceiverControl
-	logic overflowInTQueue, overflowInRQueue, spiReceiverIsBusy;
+ 	//from ISpiReceiverControl
+	logic outQueueOverflow, inQueueOverflow, spiIsBusy;
 
 	//from IServiceProtocolDControl
-	logic [7:0] inputAddr, dataWordNum;
-	ServiceProtocol::TCommandCode 	cmdCode;
-	logic packetStart, packetErr, packetEnd;
+	logic [7:0] inAddr;
+	logic [7:0] inWordNum;
+	ServiceProtocol::TCommandCode 	inCmdCode;
+	logic inPacketStart, inPacketErr, inPacketEnd;
 	
 	//from IServiceProtocolEControl
-	logic [7:0] moduleAddr;
-	logic spiTransmitEnable;
-	logic[15:0] spiTransmitDataSize;	
+	logic [7:0] outAddr;
+	logic outEnable;
+	logic [15:0] outDataSize;	
+	ServiceProtocol::TCommandCode 	outCmdCode;
 	
-	modport slave(output moduleAddr, cmdCode, dataWordNum, packetStart, 
-								packetErr, packetEnd, spiReceiverIsBusy, 
-								overflowInTQueue, overflowInRQueue,
-						input spiTransmitEnable, spiTransmitDataSize);
+	modport slave(	output	inCmdCode, inWordNum, inAddr,
+						 	inPacketStart, inPacketErr, inPacketEnd, 
+						 	spiIsBusy, outQueueOverflow, inQueueOverflow,
+				  	input  	outEnable, outCmdCode, outDataSize, outAddr);
 								
-	modport master(input moduleAddr, cmdCode, dataWordNum, packetStart, 
-								packetErr, packetEnd, spiReceiverIsBusy, 
-								overflowInTQueue, overflowInRQueue,
-					  output spiTransmitEnable, spiTransmitDataSize);
+	modport master(	input 	inCmdCode, inWordNum, inAddr,
+							inPacketStart, inPacketErr, inPacketEnd, 
+							spiIsBusy, outQueueOverflow, inQueueOverflow,
+				  	output 	outEnable, outCmdCode, outDataSize, outAddr);
 endinterface
 
-module LinkSpi(	input bit rst, clk, 
-								ISpi.slave 		spi,
-								IPush.master	pushFromSpi,
-								IPop.master		popToSpi,
-                ILinkSpiControl.slave control);
+module LinkSpi(	input bit 		rst, clk, 
+				ISpi.slave 		spi,
+				IPush.master	pushFromSpi,
+				IPop.master		popToSpi,
+				ILinkSpiControl.slave control);
 	
 	IPush rspi();
 	IPush tspi();
@@ -41,34 +43,34 @@ module LinkSpi(	input bit rst, clk,
 	                        .controlBus(spiControl.slave), .spi(spi));
 	
 	IServiceProtocolDControl decoderControl();
-	ServiceProtocolDecoder(.rst(rst), .clk(clk),
-	                       .receivedData(rspi.slave), .decodedBus(pushFromSpi),
-	                       .control(decoderControl.slave));
+	ServiceProtocolDecoder spDecoder(.rst(rst), .clk(clk),
+	                                 .receivedData(rspi.slave), .decodedBus(pushFromSpi),
+	                                 .control(decoderControl.slave));
   
-  IServiceProtocolEControl encoderControl();
-  ServiceProtocolEncoder(.rst(rst), .clk(clk),
-                         .data(popToSpi), .packet(tspi.master),
-                         .control(encoderControl.slave));
+	IServiceProtocolEControl encoderControl();
+	ServiceProtocolEncoder spEncoder(.rst(rst), .clk(clk),
+									 .data(popToSpi), .packet(tspi.master),
+									 .control(encoderControl.slave));
   
-  //ISpiReceiverControl
-  assign control.spiReceiverIsBusy = spiControl.isBusy;
-	assign control.overflowInTQueue 	= spiControl.overflowInTQueue;
-	assign control.overflowInRQueue 	= spiControl.overflowInRQueue; 
-  
-  //IServiceProtocolDControl
- 	assign control.inputAddr			= decoderControl.moduleAddr;
-	assign control.cmdCode 				= decoderControl.cmdCode;
-	assign control.dataWordNum 		= decoderControl.dataWordNum;
-	assign control.packetStart 		= decoderControl.packetStart;
-	assign control.packetErr 			= decoderControl.packetErr;
-	assign control.packetEnd 			= decoderControl.packetEnd;
-	assign decoderControl.spiReceiverIsBusy = spiControl.isBusy;
-	
+	//ISpiReceiverControl
+	assign control.spiIsBusy 		= spiControl.isBusy;
+	assign control.outQueueOverflow = spiControl.overflowInTQueue;
+	assign control.inQueueOverflow 	= spiControl.overflowInRQueue; 
+
+	//IServiceProtocolDControl
+	assign control.inCmdCode 		= decoderControl.cmdCode;
+	assign control.inWordNum 		= decoderControl.wordNum;
+	assign control.inPacketStart 	= decoderControl.packetStart;
+	assign control.inPacketErr 		= decoderControl.packetErr;
+	assign control.inPacketEnd 		= decoderControl.packetEnd;
+	assign control.inAddr			= decoderControl.addr;
+	assign decoderControl.enable	= spiControl.isBusy;
+
 	//IServiceProtocolEControl
-	assign encoderControl.cmdCode 		= decoderControl.cmdCode;
-	assign encoderControl.moduleAddr 	= control.moduleAddr;
-	assign encoderControl.enable		= control.spiTransmitEnable;
-	assign encoderControl.size			= control.spiTransmitDataSize;
+	assign encoderControl.cmdCode	= control.outCmdCode;
+	assign encoderControl.addr 		= control.outAddr;
+	assign encoderControl.enable	= control.outEnable;
+	assign encoderControl.size		= control.outDataSize;
 
 endmodule
 	

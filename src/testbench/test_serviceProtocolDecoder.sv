@@ -50,7 +50,7 @@ module test_serviceProtocolDecoder();
 
       begin
         @(unpackerControl.packetStart);
-        assert( unpackerControl.moduleAddr == 8'hAB ); 
+        assert( unpackerControl.addr == 8'hAB ); 
         assert( unpackerControl.cmdCode == TCC_SEND_DATA ); //A2
       end
       

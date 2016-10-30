@@ -2,13 +2,13 @@
 `define SP_ENCODER_INCLUDE
 
 interface IServiceProtocolEControl();
-	logic[7:0] 	moduleAddr;
+	logic[7:0] 	addr;
 	logic[15:0] size;
 	ServiceProtocol::TCommandCode 	cmdCode;
 	logic enable;
 	
-	modport slave(input moduleAddr, size, cmdCode, enable);
-	modport master(output moduleAddr, size, cmdCode, enable);
+	modport slave(input addr, size, cmdCode, enable);
+	modport master(output addr, size, cmdCode, enable);
 endinterface
 
 module ServiceProtocolEncoder(input bit rst, clk,
@@ -43,7 +43,7 @@ module ServiceProtocolEncoder(input bit rst, clk,
 		if(Next == PACKET_HEAD1_L) begin
 			crc <= '0;
 			cntr <= control.size;
-			{headerPart.part1, headerPart.part2} <= {control.moduleAddr, control.size, control.cmdCode};
+			{headerPart.part1, headerPart.part2} <= {control.addr, control.size, control.cmdCode};
 		end
 		
 		if(State == PACKET_HEAD1_L)
