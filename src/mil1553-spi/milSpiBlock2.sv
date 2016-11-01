@@ -144,7 +144,11 @@ module MilSpiBlock2	(	input logic rst, clk,
 
 	always_comb begin
 		case(confIn)
-			default:	spiControl.outDataSize = '0; 
+			default:	begin
+							spiControl.outDataSize 	= '0; 
+							spiControl.outAddr 		= '0;
+							spiControl.outCmdCode 	= TCC_UNKNOWN;
+						end
 			6'b100001:	begin // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
 							spiControl.outDataSize	= rcontrolMS0.memUsed;	
 							spiControl.outAddr 		= SPI_BLOCK_ADDR0; 

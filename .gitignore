@@ -17,3 +17,14 @@ work/
 
 quartus/
 *.vstf
+src/altera/greybox_tmp/
+src/board_DE0/db
+src/board_DE0/incremental_db
+*.txt
+*.summary
+*.smsg
+*.rpt
+*.done
+*.jdi
+*.pin
+*.sof
