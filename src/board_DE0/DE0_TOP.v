@@ -210,16 +210,25 @@ ISpi     spi();
 IMilStd  mil();
 IMemory  mem();
 
-assign mil.RXin  = mil.TXout;
-assign mil.nRXin = mil.nTXout;
+assign mil.RXin  	= mil.TXout;
+assign mil.nRXin 	= mil.nTXout;
 
-assign GPIO0_D[5]		= mil.TXout;
-assign GPIO0_D[6]		= mil.nTXout;
+assign GPIO0_D[5]	= mil.TXout;
+assign GPIO0_D[6]	= mil.nTXout;
 
-assign spi.master.nCS 		= GPIO0_D[1];
+assign spi.master.nCS 	= GPIO0_D[0];
 assign spi.master.mosi 	= GPIO0_D[2];
-assign spi.master.sck 		= GPIO0_D[3];
-assign GPIO0_D[4] 			= spi.master.miso;
+assign spi.master.sck 	= GPIO0_D[3];
+assign GPIO0_D[4] 		= spi.master.miso;
+
+//debug
+assign GPIO1_D[0]			= clk100;
+assign GPIO1_D[1]			= mem.wr_enable;
+assign GPIO1_D[17:2]		= mem.wr_data;
+assign GPIO1_D[25:18]	= mem.wr_addr;
+
+//assign GPIO0_D[31:24]	= milSpi.memoryBlock.abus;
+
 
 //=======================================================
 //  Structural coding

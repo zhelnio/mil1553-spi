@@ -1,5 +1,7 @@
 ## ignore questasim/modelsim files
 
+software/
+
 # Build results
 work/
 
@@ -28,3 +30,5 @@ src/board_DE0/incremental_db
 *.jdi
 *.pin
 *.sof
+*.ddb
+*stp
