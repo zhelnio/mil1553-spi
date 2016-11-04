@@ -75,7 +75,8 @@ module memMilEncoder(input bit rst, clk,
 	import milStd1553::*;
 	WordType	dataType, nextDataType;
 	
-	enum {IDLE, WORD1_DONE, WORD2_LOAD, WORD2_SEND, WORD2_WAIT, WORD2_DONE } State, Next;
+	enum logic[2:0] {IDLE = 3'd0, WORD1_DONE = 3'd1, WORD2_LOAD = 3'd2, 
+					 WORD2_SEND = 3'd3, WORD2_WAIT = 3'd4, WORD2_DONE = 3'd5} State, Next;
 	
 	assign mil.request = (State == WORD2_SEND);
 	assign push.done = (State == WORD1_DONE || State == WORD2_DONE);
@@ -95,7 +96,7 @@ module memMilEncoder(input bit rst, clk,
 	always_ff @ (posedge clk) begin		
 		if(idleState)
 			dataType <= nextDataType;
-		if(State == WORD2_SEND) begin
+		if(Next == WORD2_SEND) begin
 			mil.data.dataWord <= push.data;
 			mil.data.dataType <= dataType;
 		end

@@ -23,8 +23,8 @@ module milTransmitter(input bit rst, clk, ioClk,
 						  L01, L02, H11, H12, H01, H02, L11, L12} State, Next;
 	
 	logic line;
-	assign mil.TXout = (State != IDLE) ? line : 1'bz;
-	assign mil.nTXout = (State != IDLE) ? !line : 1'bz;
+	assign mil.TXout = (State != IDLE) ? line : 1'b0;
+	assign mil.nTXout = (State != IDLE) ? !line : 1'b0;
 	assign control.busy = (State != IDLE);
 	assign push.done = (State == LOAD);
 	

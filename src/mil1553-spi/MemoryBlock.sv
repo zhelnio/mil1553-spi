@@ -78,7 +78,12 @@ module MemoryBlock2(	input bit rst, clk,
 
 	RingBuffer			#(.MEM_START_ADDR(RING2_3_MEM_START), .MEM_END_ADDR(RING2_3_MEM_END))
 					ring3	 (rst, clk, rc3, push3, pop3, wbus[3].master, rbus[3].master);
-					
+	
+	assign mbus.wr_enable = ((abus[0].grant | abus[1].grant 
+							| abus[2].grant | abus[3].grant)) ? 'z : '0;
+	assign mbus.rd_enable = ((abus[4].grant | abus[5].grant 
+							| abus[6].grant | abus[7].grant)) ? 'z : '0;
+
  endmodule
 
 

@@ -207,14 +207,17 @@ inout	[31:0]	GPIO1_D;				//	GPIO Connection 1 Data Bus
 reg clk100;
 
 ISpi     spi();
-IMilStd  mil();
+IMilStd  mil0();
+IMilStd  mil1();
 IMemory  mem();
 
-assign mil.RXin  	= mil.TXout;
-assign mil.nRXin 	= mil.nTXout;
+assign mil0.RXin  	= mil0.TXout	| mil1.TXout;
+assign mil0.nRXin 	= mil0.nTXout	| mil1.nTXout;
+assign mil1.RXin  	= mil0.RXin;
+assign mil1.nRXin 	= mil0.nRXin;
 
-assign GPIO0_D[5]	= mil.TXout;
-assign GPIO0_D[6]	= mil.nTXout;
+assign GPIO0_D[5]	= mil0.RXin;
+assign GPIO0_D[6]	= mil0.nRXin;
 
 assign spi.master.nCS 	= GPIO0_D[0];
 assign spi.master.mosi 	= GPIO0_D[2];
@@ -223,9 +226,19 @@ assign GPIO0_D[4] 		= spi.master.miso;
 
 //debug
 assign GPIO1_D[0]			= clk100;
+/*
 assign GPIO1_D[1]			= mem.wr_enable;
 assign GPIO1_D[17:2]		= mem.wr_data;
 assign GPIO1_D[25:18]	= mem.wr_addr;
+
+assign GPIO1_D[26]		= mem.busy;
+assign GPIO0_D[7]			= mem.rd_enable;
+assign GPIO0_D[15:8]		= mem.rd_addr;
+assign GPIO0_D[31:16]	= mem.rd_data;
+*/
+
+
+assign LEDG[0] = clk100;
 
 //assign GPIO0_D[31:24]	= milSpi.memoryBlock.abus;
 
@@ -250,7 +263,7 @@ pll_100 pll(CLOCK_50, clk100);
 
 IpMilSpiDoubleB milSpi(	.clk(clk100), .rst(!BUTTON[0]),
 								.spi(spi), 
-								.mil0(mil), .mil1(mil),
+								.mil0(mil0), .mil1(mil1),
 								.mbus(mem));
 							 
 AlteraMemoryWrapper memory(.clk(clk100), .rst(!BUTTON[0]), 

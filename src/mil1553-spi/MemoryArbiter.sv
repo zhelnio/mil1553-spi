@@ -34,7 +34,7 @@ module Arbiter(input bit rst, clk,
 endmodule
 
 module Arbiter8(input bit rst, clk,
-					IArbiter.arbiter client[7:0]);
+				IArbiter.arbiter client[7:0]);
 
 	logic [7:0] requestedChannel, 
 					grantedChannel, newGrantedChannel;
@@ -49,6 +49,7 @@ module Arbiter8(input bit rst, clk,
 	always_ff @ (posedge clk)
 		if(rst)
 			grantedChannel <= '0;
+			//grantedChannel <= 8'b00000001;
 		else
 			grantedChannel <= newGrantedChannel;
 
@@ -65,6 +66,7 @@ module Arbiter8(input bit rst, clk,
 			else if(requestedChannel & 8'b01000000) newGrantedChannel = 8'b01000000;
 			else if(requestedChannel & 8'b10000000) newGrantedChannel = 8'b10000000;
 			else newGrantedChannel = '0;
+			//else newGrantedChannel = 8'b00000001;
 		end
 	end
 			
