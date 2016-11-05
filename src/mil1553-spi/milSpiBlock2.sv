@@ -1,3 +1,9 @@
+/* MIL-STD-1553 <-> SPI converter
+ * Copyright(c) 2016 Stanislav Zhelnio
+ * Licensed under the MIT license (MIT)
+ * https://github.com/zhelnio/mil1553-spi
+ */
+
 `ifndef MILSPIBLOCK2_INCLUDE
 `define MILSPIBLOCK2_INCLUDE
 
