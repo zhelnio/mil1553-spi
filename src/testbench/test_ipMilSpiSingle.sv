@@ -6,11 +6,11 @@ module test_IpMilSpiSingle();
 	
 	bit nRst, clk;
 	ISpi     spi();
-	IMilStd  mil();
+	IMilStd  mil0();
+	IMilStd  mil1();
 	IMemory  mem();
 
-	assign mil.RXin  = mil.TXout;
-	assign mil.nRXin = mil.nTXout;
+	MilConnectionPoint mcp(mil0, mil1);
 	
 	//debug spi transmitter
 	IPush        		spiPush();
@@ -20,7 +20,7 @@ module test_IpMilSpiSingle();
 	//debug mil tranceiver
 	IPushMil         	milPush();
 	IPushMilHelper 	 	milDebug(clk, milPush);
-	DebugMilTransmitter milTrans(nRst, clk, milPush, mil);
+	DebugMilTransmitter milTrans(nRst, clk, milPush, mil0);
 	
 	//DUT modules
 	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR 	= 8'hAB;
@@ -30,7 +30,7 @@ module test_IpMilSpiSingle();
   	defparam milSpi.memoryBlock.RING2_MEM_END	= 16'hFF;
 
 	IpMilSpiSingle milSpi(.clk(clk), .nRst(nRst),
-	                      .spi(spi), .mil(mil),
+	                      .spi(spi), .mil(mil1),
 	                      .mbus(mem));
 	                      
 	AlteraMemoryWrapper memory(.clk(clk), .nRst(nRst), 

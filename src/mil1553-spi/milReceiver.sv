@@ -61,8 +61,6 @@ module milReceiver(	input bit nRst, clk,
 		parityIsIncorrect = (buffer.parity[1] == (^data.dataWord));
 		
 		if(error == '0) begin
-			
-
 			if(	buffer.sync == 6'b111000 && (buffer.next == 3'b000 || buffer.next == 3'b111)) begin
 				data.dataType = parityIsIncorrect ? WSERVERR : WSERV; 
 				wordReceived = 1'b1; 

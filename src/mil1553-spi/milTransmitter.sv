@@ -108,7 +108,7 @@ module milTransmitter(input bit nRst, clk, ioClk,
 			L11:	if(upIoClk)		Next = L12;
 			L12:	if(upIoClk)		Next = DATA;
 			DATA:	if(upIoClk && nextCntr == 15) Next = PARITY;
-			PARITY: if(upIoClk) 		Next = (dataInQueue) ? LOAD : POSTFIX1;
+			PARITY: if(upIoClk) 	Next = (dataInQueue) ? LOAD : POSTFIX1;
 			POSTFIX1: if(upIoClk) 	Next = POSTFIX2;
 			POSTFIX2: if(downIoClk)	Next = IDLE;
 		endcase

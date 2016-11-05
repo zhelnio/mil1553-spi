@@ -16,13 +16,13 @@ module ServiceProtocolEncoder(input bit nRst, clk,
 										IPush.master 	packet,
 										IServiceProtocolEControl.slave control);
 	
-	enum logic [4:0] {WAIT, 
-							PACKET_HEAD1_L, PACKET_HEAD1_W, 	
-							PACKET_HEAD2_L, PACKET_HEAD2_W,
-							PACKET_DATA_LR, PACKET_DATA_LW, PACKET_DATA_SR, PACKET_DATA_SW, 
-							PACKET_CRC_L, PACKET_CRC_W,
-							PACKET_NUM_L, PACKET_NUM_W,
-							IDLE } State, Next;
+	enum logic [4:0] {	WAIT, 
+						PACKET_HEAD1_L, PACKET_HEAD1_W, 	
+						PACKET_HEAD2_L, PACKET_HEAD2_W,
+						PACKET_DATA_LR, PACKET_DATA_LW, PACKET_DATA_SR, PACKET_DATA_SW, 
+						PACKET_CRC_L, PACKET_CRC_W,
+						PACKET_NUM_L, PACKET_NUM_W,
+						IDLE } State, Next;
 			
 	logic[15:0] cntr;
 	logic[15:0] crc, num;
@@ -59,20 +59,20 @@ module ServiceProtocolEncoder(input bit nRst, clk,
 	
 	always_comb begin
 		case(State)
-			WAIT:					{data.request, packet.request, packet.data} = '0;
+			WAIT:			{data.request, packet.request, packet.data} = '0;
 			PACKET_HEAD1_L:	{data.request, packet.request, packet.data} = { 2'b01, headerPart.part1 };
-			PACKET_HEAD1_W: 	{data.request, packet.request, packet.data} = { 2'b00, headerPart.part1 };
+			PACKET_HEAD1_W: {data.request, packet.request, packet.data} = { 2'b00, headerPart.part1 };
 			PACKET_HEAD2_L:	{data.request, packet.request, packet.data} = { 2'b01, headerPart.part2 };
 			PACKET_HEAD2_W:	{data.request, packet.request, packet.data} = { 2'b00, headerPart.part2 };
 			PACKET_DATA_LR:	begin {data.request, packet.request} = 2'b10; packet.data = 'x; end
 			PACKET_DATA_LW:	begin {data.request, packet.request} = 2'b00; packet.data = 'x; end
 			PACKET_DATA_SR:	{data.request, packet.request, packet.data} = { 2'b01, data.data };
 			PACKET_DATA_SW:	{data.request, packet.request, packet.data} = { 2'b00, data.data };
-			PACKET_CRC_L:		{data.request, packet.request, packet.data} = { 2'b01, crc };
-			PACKET_CRC_W:		{data.request, packet.request, packet.data} = { 2'b00, crc };
-			PACKET_NUM_L:		{data.request, packet.request, packet.data} = { 2'b01, num };
-			PACKET_NUM_W:		{data.request, packet.request, packet.data} = { 2'b00, num };
-			IDLE:					{data.request, packet.request, packet.data} = '0;
+			PACKET_CRC_L:	{data.request, packet.request, packet.data} = { 2'b01, crc };
+			PACKET_CRC_W:	{data.request, packet.request, packet.data} = { 2'b00, crc };
+			PACKET_NUM_L:	{data.request, packet.request, packet.data} = { 2'b01, num };
+			PACKET_NUM_W:	{data.request, packet.request, packet.data} = { 2'b00, num };
+			IDLE:			{data.request, packet.request, packet.data} = '0;
 		endcase
 	end
 	
@@ -82,7 +82,7 @@ module ServiceProtocolEncoder(input bit nRst, clk,
 			Next = WAIT;
 		else
 			unique case(State)
-				WAIT:					if(control.enable)Next = PACKET_HEAD1_L;
+				WAIT:			if(control.enable)Next = PACKET_HEAD1_L;
 				PACKET_HEAD1_L:	Next = PACKET_HEAD1_W;
 				PACKET_HEAD1_W:	if(packet.done) Next = PACKET_HEAD2_L;
 				PACKET_HEAD2_L:	Next = PACKET_HEAD2_W;
@@ -91,10 +91,10 @@ module ServiceProtocolEncoder(input bit nRst, clk,
 				PACKET_DATA_LW:	if(data.done) Next = PACKET_DATA_SR;
 				PACKET_DATA_SR:	Next = PACKET_DATA_SW;
 				PACKET_DATA_SW:	if(packet.done) Next = (cntr == '0) ? PACKET_CRC_L : PACKET_DATA_LR;
-				PACKET_CRC_L:		Next = PACKET_CRC_W;
-				PACKET_CRC_W:		if(packet.done) Next = PACKET_NUM_L;
-				PACKET_NUM_L:		Next = PACKET_NUM_W;
-				PACKET_NUM_W:		if(packet.done) Next = IDLE;
+				PACKET_CRC_L:	Next = PACKET_CRC_W;
+				PACKET_CRC_W:	if(packet.done) Next = PACKET_NUM_L;
+				PACKET_NUM_L:	Next = PACKET_NUM_W;
+				PACKET_NUM_W:	if(packet.done) Next = IDLE;
 				IDLE:	;
 			endcase
 	end

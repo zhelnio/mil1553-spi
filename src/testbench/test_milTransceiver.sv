@@ -4,19 +4,20 @@ module test_milTransceiver();
   import milStd1553::*;
   
   bit nRst, clk;
-  IMilStd mil();
-  assign mil.RXin  = mil.TXout;
-	assign mil.nRXin = mil.nTXout;
+
+	IMilStd  mil0();
+	IMilStd  mil1();
+	MilConnectionPoint mcp(mil0, mil1);
 
   IPushMil rpush0();
   IPushMil tpush0();
   IMilControl control0();
-  milTransceiver tr0(nRst, clk, rpush0, tpush0, mil, control0);
+  milTransceiver tr0(nRst, clk, rpush0, tpush0, mil0, control0);
   
   IPushMil rpush1();
   IPushMil tpush1();
   IMilControl control1();
-  milTransceiver tr1(nRst, clk, rpush1, tpush1, mil, control1);
+  milTransceiver tr1(nRst, clk, rpush1, tpush1, mil1, control1);
   
   IPushMilHelper pushHelper0(clk, tpush0);
   IPushMilHelper pushHelper1(clk, tpush1);

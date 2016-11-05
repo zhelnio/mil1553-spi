@@ -16,11 +16,13 @@ module test_spiCore();
 	             .rDone(rDone2), .oPin(iPin), .tFinish(tFinish2));
 	
   initial begin
+	  nRst	= 0;
 	  tData1 = 16'hABCD;
 	  tData2 = 16'h1234;
 	  nCS = 1;
-	
-    #10; nCS = 0;
+
+	#2	nRst = 1;
+    #10	nCS = 0;
     #300 $stop;
   end
 
