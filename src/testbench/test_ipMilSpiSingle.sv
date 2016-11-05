@@ -14,8 +14,9 @@ module test_IpMilSpiSingle();
 	
 	//debug spi transmitter
 	IPush        		spiPush();
+	IPush        		spiRcvd();
 	IPushHelper 		spiDebug(clk, spiPush);
-	DebugSpiTransmitter	spiTrans(nRst, clk, spiPush, spi);
+	DebugSpiTransmitter	spiTrans(nRst, clk, spiPush, spiRcvd, spi);
 	
 	//debug mil tranceiver
 	IPushMil         	milPush();
@@ -39,81 +40,130 @@ module test_IpMilSpiSingle();
 	
 		nRst = 0;
 	#20 nRst = 1;
+	fork
+		begin
+			#250000 //max test duration
+			$stop();
+		end
 
-			//send some random data to Mil
-			begin
-				$display("TransmitOverMil Start");	
-				
-				milDebug.doPush(WSERV,	16'hAB00);
-				milDebug.doPush(WDATA,		16'hEFAB);
-				milDebug.doPush(WDATA,		16'h9D4D);
-				
-				$display("TransmitOverMil End");	
-			end
-		
-			//send data to spi Mil
-			begin
-				$display("TransmitOverSpi Start");	
+		begin //tests sequence
+			fork // send data to mil and spi
+				//send some random data to Mil
+				begin
+					$display("TransmitOverMil Start");	
+					
+					milDebug.doPush(WSERV,	16'hAB00);
+					milDebug.doPush(WDATA,	16'hEFAB);
+					milDebug.doPush(WDATA,	16'h9D4D);
+					
+					$display("TransmitOverMil End");	
+				end
 			
-				spiDebug.doPush(16'hAB00);	//addr = AB
-				spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
-				spiDebug.doPush(16'hFFA1);  //next word is WSERV
-				spiDebug.doPush(16'h0001);	//WSERV h0001
+				//send data to spi Mil
+				begin
+					$display("TransmitOverSpi Start");	
 				
-				spiDebug.doPush(16'h0002);	//WDATA h0002
-				spiDebug.doPush(16'hAB45);	//WDATA hAB45
-				spiDebug.doPush(16'hFFA3);	//next word is ESC_WDATA
-				spiDebug.doPush(16'hFFA1);	//WDATA hFFA1
-				
-				spiDebug.doPush(16'h5BCF);	//check sum
-				spiDebug.doPush(16'h0);		//word num
-				
-				$display("TransmitOverSpi End");	
-			end
-			
+					spiDebug.doPush(16'hAB00);	//addr = AB
+					spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
+					spiDebug.doPush(16'hFFA1);  //next word is WSERV
+					spiDebug.doPush(16'h0001);	//WSERV h0001
+					
+					spiDebug.doPush(16'h0002);	//WDATA h0002
+					spiDebug.doPush(16'hAB45);	//WDATA hAB45
+					spiDebug.doPush(16'hFFA3);	//next word is ESC_WDATA
+					spiDebug.doPush(16'hFFA1);	//WDATA hFFA1
+					
+					spiDebug.doPush(16'h5BCF);	//check sum
+					spiDebug.doPush(16'h0);		//word num
+					
+					$display("TransmitOverSpi End");	
+				end
+			join
 			//current status request
-			begin
-				$display("GetStatus Start");	
-			
-				spiDebug.doPush(16'hAB00);	//addr = AB
-				spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
-				spiDebug.doPush(16'h0);		//blank data to receive reply
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);	
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);
-				spiDebug.doPush(16'hB5B0);	//check sum
-				spiDebug.doPush(16'h0);		//word num
-			
-				$display("GetStatus End");		
-			end
+			fork
+				begin
+					$display("GetStatus Start");	
+				
+					spiDebug.doPush(16'hAB00);	//addr = AB
+					spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
+					spiDebug.doPush(16'h0);		//blank data to receive reply
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);	
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'hB5B0);	//check sum
+					spiDebug.doPush(16'h0);		//word num
+				
+					$display("GetStatus End");	
+				end	
+				begin
+					@(spiRcvd.data == 16'h0);
+					assert( 1 == 1);
+					@(spiRcvd.data == 16'hAB00 && spiRcvd.request == 1);	//responce addr = AB
+					assert( 1 == 1);
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h02B0);	// responce size = 02, cmd = B0
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data > 0);	// input queue size
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data > 0);	// output queue	size
+					@(posedge spiRcvd.request);	// check sum
+					@(posedge spiRcvd.request); // packet num
+					@(posedge spiRcvd.request);	// blank word after the packet
+					assert(spiRcvd.data == '0);
+					$display("GetStatus Ok");				
+				end
+			join
 			
 			//get data that was received from Mil
-			begin
-				$display("ReceiveOverSpi Start");	
-			
-				spiDebug.doPush(16'hAB00);	//addr = AB
-				spiDebug.doPush(16'h0AB2);  //size = 000A, cmd = B2				
-				spiDebug.doPush(16'h0);		//blank data to receive reply
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);	
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);
-				spiDebug.doPush(16'hB5B2);	//check sum
-				spiDebug.doPush(16'h0);		//word num
-			
-				$display("ReceiveOverSpi End");		
-			end
+			fork
+				begin
+					$display("ReceiveOverSpi Start");	
+				
+					spiDebug.doPush(16'hAB00);	//addr = AB
+					spiDebug.doPush(16'h0AB2);  //size = 000A, cmd = B2				
+					spiDebug.doPush(16'h0);		//blank data to receive reply
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);	
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'hB5B2);	//check sum
+					spiDebug.doPush(16'h0);		//word num
+				
+					$display("ReceiveOverSpi End");		
+				end
+				begin
+					@(spiRcvd.data == 16'hAB00 && spiRcvd.request == 1);	//responce addr = AB
+					assert( 1 == 1);
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h04B2);	// responce size = 04, cmd = B2
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hFFA1);	//next word is WSERV
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hAB00);	//WSERV that was received from mil
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hEFAB);	//WDATA received from mil
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h9D4D);	//WDATA received from mil
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hE74B);	//check sum
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h0002);	//packet num
+					@(posedge spiRcvd.request);	
+					assert(spiRcvd.data == '0);			// blank word after the packet
+					$display("ReceiveOverSpi Ok");	
+				end
+			join
 			
 			//system reset, incorrect addr, the cmd should be ignored
 			begin
@@ -143,30 +193,51 @@ module test_IpMilSpiSingle();
 			#10000
 
 			//current status request
-			begin
-				$display("GetStatusAfterReset Start");	
-			
-				spiDebug.doPush(16'hAB00);	//addr = AB
-				spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
-				spiDebug.doPush(16'h0);		//blank data to receive reply
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);	
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);		
-				spiDebug.doPush(16'h0);
-				spiDebug.doPush(16'hB5B0);	//check sum
-				spiDebug.doPush(16'h0);		//word num
-			
-				$display("GetStatusAfterReset End");		
-			end
+			fork
+				begin
+					$display("GetStatusAfterReset Start");	
+				
+					spiDebug.doPush(16'hAB00);	//addr = AB
+					spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
+					spiDebug.doPush(16'h0);		//blank data to receive reply
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);	
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);		
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'hB5B0);	//check sum
+					spiDebug.doPush(16'h0);		//word num
+				
+					$display("GetStatusAfterReset End");		
+				end
+				begin
+					@(spiRcvd.data == 16'h0);
+					assert( 1 == 1);
+					@(spiRcvd.data == 16'hAB00 && spiRcvd.request == 1);	//responce addr = AB
+					assert( 1 == 1);
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h02B0);	// responce size = 02, cmd = B0
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == '0);	// input queue size
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == '0);	// output queue	size
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hADB0);	// check sum
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'h0001);	// packet num
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == '0);	// blank word after the packet
+					$display("GetStatus after reset Ok");	
+				end
+			join
+		end //tests sequence
+	join
 	end
 	
 	always #5  clk =  ! clk;
 
 endmodule
-
-

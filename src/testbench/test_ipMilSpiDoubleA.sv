@@ -16,12 +16,14 @@ module test_IpMilSpiDoubleA();
 	
 	//debug spi transmitter
 	IPush        		spiPush0();
+	IPush        		spiRcvd0();
 	IPushHelper 		spiDebug0(clk, spiPush0);
-	DebugSpiTransmitter	spiTrans0(nRst, clk, spiPush0, spi0);
+	DebugSpiTransmitter	spiTrans0(nRst, clk, spiPush0, spiRcvd0, spi0);
 
 	IPush        		spiPush1();
+	IPush        		spiRcvd1();
 	IPushHelper 		spiDebug1(clk, spiPush1);
-	DebugSpiTransmitter	spiTrans1(nRst, clk, spiPush1, spi1);
+	DebugSpiTransmitter	spiTrans1(nRst, clk, spiPush1, spiRcvd1, spi1);
 	
 	//debug mil tranceiver
 	IPushMil         	milPush();
@@ -52,51 +54,86 @@ module test_IpMilSpiDoubleA();
 	
 		nRst = 0;
 	#20 nRst = 1;
-		
-			//send data to spi Mil
+		fork
 			begin
-				$display("TransmitOverSpi Start");	
-			
-				spiDebug0.doPush(16'hAB00);	//addr = AB
-				spiDebug0.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
-				spiDebug0.doPush(16'hFFA1);  //next word is WSERV
-				spiDebug0.doPush(16'h0001);	//WSERV h0001
-				
-				spiDebug0.doPush(16'h0002);	//WDATA h0002
-				spiDebug0.doPush(16'hAB45);	//WDATA hAB45
-				spiDebug0.doPush(16'hFFA3);	//next word is ESC_WDATA
-				spiDebug0.doPush(16'hFFA1);	//WDATA hFFA1
-				
-				spiDebug0.doPush(16'h5BCF);	//check sum
-				spiDebug0.doPush(16'h0);	//word num
-				
-				$display("TransmitOverSpi End");	
+				#150000 //max test duration
+				$stop();
 			end
-			
-			//wait for mil transmission end
-			#80000
 
-			//get data that was received from Mil
 			begin
-				$display("ReceiveOverSpi Start");	
-			
-				spiDebug1.doPush(16'hAC00);	//addr = AC
-				spiDebug1.doPush(16'h0AB2);  //size = 000A, cmd = B2				
-				spiDebug1.doPush(16'h0);	//blank data to receive reply
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);	
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);		
-				spiDebug1.doPush(16'h0);
-				spiDebug1.doPush(16'hB6B2);	//check sum
-				spiDebug1.doPush(16'h0);		//word num
-			
-				$display("ReceiveOverSpi End");		
+				//send data to spi Mil
+				begin
+					$display("TransmitOverSpi Start");	
+				
+					spiDebug0.doPush(16'hAB00);	//addr = AB
+					spiDebug0.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
+					spiDebug0.doPush(16'hFFA1);  //next word is WSERV
+					spiDebug0.doPush(16'h0001);	//WSERV h0001
+					
+					spiDebug0.doPush(16'h0002);	//WDATA h0002
+					spiDebug0.doPush(16'hAB45);	//WDATA hAB45
+					spiDebug0.doPush(16'hFFA3);	//next word is ESC_WDATA
+					spiDebug0.doPush(16'hFFA1);	//WDATA hFFA1
+					
+					spiDebug0.doPush(16'h5BCF);	//check sum
+					spiDebug0.doPush(16'h0);	//word num
+					
+					$display("TransmitOverSpi End");	
+				end
+				
+				//wait for mil transmission end
+				#80000
+
+				//get data that was received from Mil
+				fork
+					begin
+						$display("ReceiveOverSpi Start");	
+					
+						spiDebug1.doPush(16'hAC00);	//addr = AC
+						spiDebug1.doPush(16'h0AB2);  //size = 000A, cmd = B2				
+						spiDebug1.doPush(16'h0);	//blank data to receive reply
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);	
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);		
+						spiDebug1.doPush(16'h0);
+						spiDebug1.doPush(16'hB6B2);	//check sum
+						spiDebug1.doPush(16'h0);		//word num
+					
+						$display("ReceiveOverSpi End");		
+					end
+					begin
+						@(spiRcvd1.data == 16'hAC00 && spiRcvd1.request == 1);	//responce addr = AC
+						assert( 1 == 1);
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'h06B2);	// responce size = 0006, cmd = B2
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hFFA1);	//next word is WSERV
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'h0001);	//WSERV that was received from mil
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'h0002);	//WDATA received from mil
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hAB45);	//WDATA received from mil
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hFFA3);	//next word is ESC_WDATA
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hFFA1);	//WDATA received from mil
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'h5CDF);	//check sum
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'h0001);	//packet num
+						@(posedge spiRcvd1.request);	
+						assert(spiRcvd1.data == '0);			// blank word after the packet
+						$display("ReceiveOverSpi Ok");
+					end
+				join
 			end
+		join
 	end
 	
 	always #5  clk =  ! clk;

@@ -22,8 +22,30 @@ initial begin
 	#2	nRst = '1;
   
 	fork
-		r_helper.doRead(8'h02);
-		w_helper.doWrite(8'h02, 16'hABCD);
+		begin
+			#1000 //max test duration
+			$stop();
+		end
+		fork
+			r_helper.doRead(8'h02);
+			w_helper.doWrite(8'h02, 16'hABCD);
+		join
+		begin
+			@(posedge abus[0].request);
+			assert(abus[1].request);
+			@(posedge abus[0].grant);
+			assert(1==1);
+			@(negedge abus[0].request);
+			assert(1==1);
+			@(negedge abus[0].grant);
+			assert(1==1);
+			@(posedge abus[1].grant);
+			assert(1==1);
+			@(negedge abus[1].request);
+			assert(1==1);
+			@(negedge abus[1].grant);
+			assert(1==1);
+		end
 	join
 end
 

@@ -5,10 +5,11 @@ module test_serviceProtocolDecoder();
 	bit nRst, clk;
 
 	//debug spi transmitter
-	ISpi spiBus();
-	IPush spiPush();
-	IPushHelper 		spiHelper(clk, spiPush);
-	DebugSpiTransmitter 	spiTrans(nRst, clk, spiPush, spiBus);
+	ISpi	spiBus();
+	IPush	spiPush();
+	IPush	spiRdvd();
+	IPushHelper	piHelper(clk, spiPush);
+	DebugSpiTransmitter 	spiTrans(nRst, clk, spiPush, spiRdvd, spiBus);
 	
 	//receiver and unpacker
 	IPush spiOut();

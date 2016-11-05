@@ -4,18 +4,22 @@
 `define HELPSPI_INCLUDE
 
 module DebugSpiTransmitter(input bit nRst, clk,
-									IPush.slave push,
+									IPush.slave snd,
+									IPush.master rcv,
 									ISpi spi);
 	
 	IPush receiveBus();
 	ISpiTransmitterControl control();
 	
 	spiTransmitter spiTrans(nRst, clk,
-									        push, receiveBus,
-									        control, spi);
+					snd, receiveBus,
+					control, spi);
 	
 	always_ff @ (posedge clk) begin
-	  
+		
+		rcv.data 	<= receiveBus.data;
+		rcv.request	<= receiveBus.request;
+
 		if(receiveBus.request) begin
 			$display("IPushMasterDebug %m --> %h", receiveBus.data);	
 			receiveBus.done <= '1;
