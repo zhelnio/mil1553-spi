@@ -206,49 +206,33 @@ inout	[31:0]	GPIO1_D;				//	GPIO Connection 1 Data Bus
 
 reg clk100;
 
+//IO interfaces
 ISpi     spi();
 IMilStd  mil0();
 IMilStd  mil1();
 IMemory  mem();
 
-assign mil0.RXin  	= mil0.TXout	| mil1.TXout;
-assign mil0.nRXin 	= mil0.nTXout	| mil1.nTXout;
-assign mil1.RXin  	= mil0.RXin;
-assign mil1.nRXin 	= mil0.nRXin;
+//connection mil's to each other
+MilConnectionPoint mcp(mil0,mil1);
 
-assign GPIO0_D[5]	= mil0.RXin;
-assign GPIO0_D[6]	= mil0.nRXin;
+//debug output
+assign GPIO0_D[5]		= mil0.RXin;
+assign GPIO0_D[6]		= mil0.nRXin;
 
 assign spi.master.nCS 	= GPIO0_D[0];
 assign spi.master.mosi 	= GPIO0_D[2];
 assign spi.master.sck 	= GPIO0_D[3];
 assign GPIO0_D[4] 		= spi.master.miso;
 
-//debug
-assign GPIO1_D[0]			= clk100;
-/*
-assign GPIO1_D[1]			= mem.wr_enable;
-assign GPIO1_D[17:2]		= mem.wr_data;
-assign GPIO1_D[25:18]	= mem.wr_addr;
-
-assign GPIO1_D[26]		= mem.busy;
-assign GPIO0_D[7]			= mem.rd_enable;
-assign GPIO0_D[15:8]		= mem.rd_addr;
-assign GPIO0_D[31:16]	= mem.rd_data;
-*/
-
-
-assign LEDG[0] = clk100;
-
-//assign GPIO0_D[31:24]	= milSpi.memoryBlock.abus;
-
+assign GPIO1_D[0]		= clk100;
+assign LEDG[0] 			= clk100;
 
 //=======================================================
 //  Structural coding
 //=======================================================
 
-defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR0 		= 8'hAB;
-defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR1 		= 8'hAC;
+defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR0 	= 8'hAB;
+defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR1 	= 8'hAC;
 
 defparam milSpi.memoryBlock.RING2_0_MEM_START	= 16'h00;
 defparam milSpi.memoryBlock.RING2_0_MEM_END		= 16'h3F;
@@ -262,11 +246,11 @@ defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFF;
 pll_100 pll(CLOCK_50, clk100);
 
 IpMilSpiDoubleB milSpi(	.clk(clk100), .rst(!BUTTON[0]),
-								.spi(spi), 
-								.mil0(mil0), .mil1(mil1),
-								.mbus(mem));
+						.spi(spi), 
+						.mil0(mil0), .mil1(mil1),
+						.mbus(mem));
 							 
-AlteraMemoryWrapper memory(.clk(clk100), .rst(!BUTTON[0]), 
-									.memBus(mem));
+AlteraMemoryWrapper memory(	.clk(clk100), .rst(!BUTTON[0]), 
+							.memBus(mem));
 
 endmodule

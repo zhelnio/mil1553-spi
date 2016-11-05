@@ -6,11 +6,12 @@ module test_IpMilSpiDoubleB();
 	
 	bit rst, clk;
 	ISpi     spi();	// 2x milSpi are connected to one spi bus with different ServiceProtocol addrs
-	IMilStd  mil();
+	IMilStd  mil0();
+	IMilStd  mil1();
+	IMilStd  mil2();
 	IMemory  mem();
 
-	assign mil.RXin  = mil.TXout;
-	assign mil.nRXin = mil.nTXout;
+	MilConnectionPoint3 mcp(mil0,mil1,mil2);
 	
 	//debug spi transmitter
 	IPush        		spiPush();
@@ -20,7 +21,7 @@ module test_IpMilSpiDoubleB();
 	//debug mil tranceiver
 	IPushMil         	milPush();
 	IPushMilHelper 	 	milDebug(clk, milPush);
-	DebugMilTransmitter milTrans(rst, clk, milPush, mil);
+	DebugMilTransmitter milTrans(rst, clk, milPush, mil2);
 	
 	//DUT modules
 	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR0 	= 8'hAB;
@@ -37,7 +38,7 @@ module test_IpMilSpiDoubleB();
 
 	IpMilSpiDoubleB milSpi(.clk(clk), .rst(rst),
 	                      .spi(spi), 
-						  .mil0(mil), .mil1(mil),
+						  .mil0(mil0), .mil1(mil1),
 	                      .mbus(mem));
 	                      
 	AlteraMemoryWrapper memory(.clk(clk), .rst(rst), 

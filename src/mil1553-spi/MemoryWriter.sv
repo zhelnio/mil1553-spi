@@ -29,21 +29,17 @@ module MemoryWriter(input bit rst, clk,
 	assign {cbus.done, abus.request} = out;
 	
 	assign mbus.wr_addr = (State == PRE_ACTION || State == ACTION) ? cbus.addr : 'z;
-	assign mbus.wr_data = (State == PRE_ACTION || State == ACTION) ? cbus.data : 'z;
-	//assign mbus.wr_enable = (State == PRE_ACTION) ? 'b1
-	//                      : ((State == ACTION) ? 'b0 : 'bz);
-	
+	assign mbus.wr_data = (State == PRE_ACTION || State == ACTION) ? cbus.data : 'z;	
 	assign mbus.wr_enable = (!abus.grant)	? 'bz
 											: ((State == PRE_ACTION) ? 'b1 : 'b0);
-	//assign mbus.wr_enable = '0;
 	
 	always_comb begin
 		unique case(State)
-			IDLE:				      out=2'b00;
-			WAIT_ACTION:	  out=2'b01;
-			PRE_ACTION:		  out=2'b01;
-			ACTION:			     out=2'b01;
-			POST_ACTION:	  out=2'b10;
+			IDLE:			out=2'b00;
+			WAIT_ACTION:	out=2'b01;
+			PRE_ACTION:		out=2'b01;
+			ACTION:			out=2'b01;
+			POST_ACTION:	out=2'b10;
 		endcase
 	end
 
