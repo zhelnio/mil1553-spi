@@ -3,9 +3,9 @@
 `ifndef MILENDECODER_INCLUDE
 `define MILENDECODER_INCLUDE
 
-`define ESC_WERROR		16'hFFA0
-`define ESC_WCOMMAND	16'hFFA1
-`define ESC_WSTATUS		16'hFFA2
+`define ESC_WSERVERR	16'hFFA0
+`define ESC_WSERV		16'hFFA1
+`define ESC_WDATAERR	16'hFFA2
 `define ESC_WDATA		16'hFFA3
 `define ESC_MASK		(14'hFFA << 2)
 
@@ -18,7 +18,8 @@ module milMemEncoder(input bit nRst, clk,
 	logic [`DATAW_TOP:0]	data, nextData, escData;
 	assign push.data = data;
 	
-	enum {IDLE, WORD1_LOAD, WORD1_WAIT, WORD2_LOAD, WORD2_WAIT, REPORT } State, Next;
+	enum logic[2:0] {IDLE = 3'd0, WORD1_LOAD = 3'd1, WORD1_WAIT = 3'd2, 
+					WORD2_LOAD = 3'd3, WORD2_WAIT = 3'd4, REPORT  = 3'd5 } State, Next;
 	
 	assign push.request = (State == WORD1_LOAD || State == WORD2_LOAD);
 	assign mil.done = (State == REPORT);
@@ -36,9 +37,9 @@ module milMemEncoder(input bit nRst, clk,
 	always_comb begin
 		escData = '0;
 		unique case(mil.data.dataType)
-			WERROR:		escData = `ESC_WERROR;
-			WCOMMAND:	escData = `ESC_WCOMMAND;
-			WSTATUS:		escData = `ESC_WSTATUS;
+			WSERVERR:	escData = `ESC_WSERVERR;
+			WSERV:		escData = `ESC_WSERV;
+			WDATAERR:	escData = `ESC_WDATAERR;
 			WDATA:		if(mil.data.dataWord[15:2] == `ESC_MASK)
 								escData = `ESC_WDATA;
 		endcase
@@ -105,18 +106,18 @@ module memMilEncoder(input bit nRst, clk,
 	always_comb begin
 		nextDataType = WDATA;
 		priority case(push.data)
-			`ESC_WERROR:	nextDataType = WERROR;
-			`ESC_WCOMMAND:	nextDataType = WCOMMAND;
-			`ESC_WSTATUS: 	nextDataType = WSTATUS;
+			`ESC_WSERVERR:	nextDataType = WSERVERR;
+			`ESC_WSERV:		nextDataType = WSERV;
+			`ESC_WDATAERR: 	nextDataType = WDATAERR;
 			`ESC_WDATA:		nextDataType = WDATA;
-			default:			nextDataType = WDATA;
+			default:		nextDataType = WDATA;
 		endcase
 	end
 	
 	always_comb begin
 		Next = State;
 		unique case(State)
-			IDLE:			if(push.request) Next = (isEscData) ? WORD1_DONE : WORD2_SEND;
+			IDLE:		if(push.request) Next = (isEscData) ? WORD1_DONE : WORD2_SEND;
 			WORD1_DONE:	Next = WORD2_LOAD;
 			WORD2_LOAD:	if(push.request) Next = WORD2_SEND;	
 			WORD2_SEND: Next = WORD2_WAIT;

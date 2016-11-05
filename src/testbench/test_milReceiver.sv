@@ -31,12 +31,12 @@ module test_milReceiver();
 		  #600 tcontrol.grant = 1;
 		
 		  begin
-		    pushHelper.doPush(WCOMMAND, 16'hEFAB);
+		    pushHelper.doPush(WSERV, 16'hEFAB);
 		    pushHelper.doPush(WDATA, 16'h02A1);
 		  end
 		  begin
 		    @(posedge rpush.request);
-        assert( rpush.data.dataType == WCOMMAND);
+        assert( rpush.data.dataType == WSERV);
         assert( rpush.data.dataWord == 16'hEFAB);
         @(posedge rpush.request);
         assert( rpush.data.dataType == WDATA);

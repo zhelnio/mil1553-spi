@@ -32,7 +32,7 @@ module milReceiver(	input bit nRst, clk,
 	
 	assign control.busy = mil.RXin | mil.nRXin;
 	
-	logic wordReceived, parityBit;
+	logic wordReceived, parityIsIncorrect;
 	MilData data;
 	logic [16:0] error;
 	
@@ -55,26 +55,24 @@ module milReceiver(	input bit nRst, clk,
 			data.dataWord[i] = buffer.content[i * 2 + 1];
 			error[i] = !(buffer.content[i * 2] ^ buffer.content[i * 2 + 1]);
 		end
-		
-		parityBit = buffer.parity[1];
 		error[16] = !(^buffer.parity);
 		
 		wordReceived = 1'b0;
+		parityIsIncorrect = (buffer.parity[1] == (^data.dataWord));
 		
 		if(error == '0) begin
-			if(buffer.sync == 6'b111000 && (buffer.next == 3'b000 || buffer.next == 3'b111))
-				begin data.dataType = WSTATUS; wordReceived = 1'b1; end
-			if(buffer.sync == 6'b000111 && (buffer.next == 3'b000 || buffer.next == 3'b111) && buffer.prev != 2'b00)
-				begin data.dataType = WDATA; wordReceived = 1'b1; end
 			
-			if(data.dataType == WSTATUS && data.dataWord[9] == 1'b1)
-				data.dataType = WCOMMAND;
-				
-			if(parityBit == (^data.dataWord))
-				data.dataType = WERROR;
+
+			if(	buffer.sync == 6'b111000 && (buffer.next == 3'b000 || buffer.next == 3'b111)) begin
+				data.dataType = parityIsIncorrect ? WSERVERR : WSERV; 
+				wordReceived = 1'b1; 
+			end
+			if(	buffer.sync == 6'b000111 && (buffer.next == 3'b000 || buffer.next == 3'b111) && buffer.prev != 2'b00) begin
+				data.dataType = parityIsIncorrect? WDATAERR : WDATA; 
+				wordReceived = 1'b1; 
+			end
 		end
 	end
-
 
 endmodule
 

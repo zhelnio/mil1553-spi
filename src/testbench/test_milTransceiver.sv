@@ -30,20 +30,20 @@ module test_milTransceiver();
 		fork	
 		
 		  begin
-		    pushHelper0.doPush(WCOMMAND, 16'h1111);
+		    pushHelper0.doPush(WSERV, 16'h1111);
 		    pushHelper0.doPush(WDATA, 16'h2222);
 		  end
 		  
 		  
 		  begin
 		    #600
-		    pushHelper1.doPush(WCOMMAND, 16'hAAAA);
+		    pushHelper1.doPush(WSERV, 16'hAAAA);
 		    pushHelper1.doPush(WDATA, 16'hBBBB);
 		  end
 		  
 		  begin
 		    @(posedge rpush0.request);
-        assert( rpush0.data.dataType == WCOMMAND);
+        assert( rpush0.data.dataType == WSERV);
         assert( rpush0.data.dataWord == 16'hAAAA);
         @(posedge rpush0.request);
         assert( rpush0.data.dataType == WDATA);
@@ -52,7 +52,7 @@ module test_milTransceiver();
 		  
 		  begin
 		    @(posedge rpush1.request);
-        assert( rpush1.data.dataType == WSTATUS);
+        assert( rpush1.data.dataType == WSERV);
         assert( rpush1.data.dataWord == 16'h1111);
         @(posedge rpush1.request);
         assert( rpush1.data.dataType == WDATA);

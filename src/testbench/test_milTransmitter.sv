@@ -23,7 +23,7 @@ module test_milTransmitter();
 		  
 		  begin
 		    #100
-		    pushHelper.doPush(WCOMMAND, 16'h02A1);
+		    pushHelper.doPush(WSERV, 16'h02A1);
 		    pushHelper.doPush(WDATA, 16'h02A1);
 		  end
 		  

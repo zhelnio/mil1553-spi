@@ -54,8 +54,8 @@ module test_IpMilSpiDoubleB();
 			
 				spiDebug.doPush(16'hAB00);	//addr = AB
 				spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
-				spiDebug.doPush(16'hFFA1);  //next word is WCOMMAND
-				spiDebug.doPush(16'h0001);	//WCOMMAND h0001
+				spiDebug.doPush(16'hFFA1);  //next word is WSERV
+				spiDebug.doPush(16'h0001);	//WSERV h0001
 				
 				spiDebug.doPush(16'h0002);	//WDATA h0002
 				spiDebug.doPush(16'hAB45);	//WDATA hAB45

@@ -6,10 +6,10 @@
 function string milType(input milStd1553::WordType t);
 	import milStd1553::*;
 
-	if(t == WCOMMAND)	return "WCOMMAND";
-	if(t == WSTATUS) 	return "WSTATUS";
+	if(t == WSERV)		return "WSERV";
 	if(t == WDATA)		return "WDATA";
-	return "WERROR";
+	if(t == WDATAERR)	return "WDATAERR";
+	return "WSERVERR";
 endfunction
 
 interface IPushMilHelper(input logic clk, IPushMil.master push);

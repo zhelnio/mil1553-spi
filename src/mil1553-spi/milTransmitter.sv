@@ -94,10 +94,10 @@ module milTransmitter(input bit nRst, clk, ioClk,
 		unique case(State)
 			IDLE:	if(dataInQueue && upIoClk && control.grant) Next = LOAD;
 			LOAD:	unique case(data.dataType)
-						WERROR:		Next = IDLE;
+						WSERVERR:	Next = IDLE;
+						WDATAERR:	Next = IDLE;
 						WDATA: 		Next = L01;
-						WCOMMAND:	Next = H01;
-						WSTATUS:		Next = H01;
+						WSERV:		Next = H01;
 					endcase
 			L01:	if(downIoClk) 	Next = L02;
 			L02:	if(downIoClk) 	Next = H11;
