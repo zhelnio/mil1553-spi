@@ -3,14 +3,14 @@
 `ifndef HELPSPI_INCLUDE
 `define HELPSPI_INCLUDE
 
-module DebugSpiTransmitter(input bit rst, clk,
+module DebugSpiTransmitter(input bit nRst, clk,
 									IPush.slave push,
 									ISpi spi);
 	
 	IPush receiveBus();
 	ISpiTransmitterControl control();
 	
-	spiTransmitter spiTrans(rst, clk,
+	spiTransmitter spiTrans(nRst, clk,
 									        push, receiveBus,
 									        control, spi);
 	
@@ -34,24 +34,24 @@ interface ISpiTransmitterControl();
 	modport slave (output overflowInTQueue, overflowInRQueue);
 endinterface
 
-module spiTransmitter(	input  bit rst, clk,
+module spiTransmitter(	input  bit nRst, clk,
 								IPush.slave 	transmitBus,
 								IPush.master 	receiveBus,
 								ISpiTransmitterControl.slave controlBus,
 								ISpi.master 	spi);
 	logic ioClk;
   
-	spiIoClkGenerator	gen(rst, clk, ioClk);
+	spiIoClkGenerator	gen(nRst, clk, ioClk);
 	
-	spiMaster	spim(	.rst(rst), .clk(clk), .spiClk(ioClk),
+	spiMaster	spim(	.nRst(nRst), .clk(clk), .spiClk(ioClk),
 							.tData(transmitBus.data), .requestInsertToTQueue(transmitBus.request),	.doneInsertToTQueue(transmitBus.done),
 							.rData(receiveBus.data), 	.requestReceivedToRQueue(receiveBus.request),	.doneSavedFromRQueue(receiveBus.done),
 							.overflowInTQueue(controlBus.overflowInTQueue), .overflowInRQueue(controlBus.overflowInRQueue),
 							.miso(spi.miso), .mosi(spi.mosi), .nCS(spi.nCS), .sck(spi.sck));
 endmodule
 
-module spiIoClkGenerator(input bit rst, clk, 
-								 output logic ioClk);
+module spiIoClkGenerator(	input bit nRst, clk, 
+							output logic ioClk);
 		
 		parameter period = 8;
 		
@@ -60,7 +60,7 @@ module spiIoClkGenerator(input bit rst, clk,
 		assign nextCntr = (cntr == period) ? 0 : (cntr + 1);
 		
 		always_ff @ (posedge clk)
-		if(rst) 
+		if(!nRst) 
 			{cntr, ioClk} <= '0;
 		else begin
 			cntr <= nextCntr;

@@ -245,12 +245,12 @@ defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFF;
 
 pll_100 pll(CLOCK_50, clk100);
 
-IpMilSpiDoubleB milSpi(	.clk(clk100), .rst(!BUTTON[0]),
+IpMilSpiDoubleB milSpi(	.clk(clk100), .nRst(BUTTON[0]),
 						.spi(spi), 
 						.mil0(mil0), .mil1(mil1),
 						.mbus(mem));
 							 
-AlteraMemoryWrapper memory(	.clk(clk100), .rst(!BUTTON[0]), 
+AlteraMemoryWrapper memory(	.clk(clk100), .nRst(BUTTON[0]), 
 							.memBus(mem));
 
 endmodule

@@ -1,19 +1,19 @@
 `timescale 10 ns/ 1 ns
 
 module test_serviceProtocolEncoder();
-	bit rst, clk;
+	bit nRst, clk;
 
 	//debug spi transmitter
 	ISpi spiBus();
 	IPushMasterDebug 		spiDebug(clk);
-	DebugSpiTransmitter 	spiTrans(rst, clk, spiDebug, spiBus);
+	DebugSpiTransmitter 	spiTrans(nRst, clk, spiDebug, spiBus);
 	
 	//receiver and unpacker
 	IPush spiSlaveOut();
 	IPush spiSlaveIn();
 	ISpiReceiverControl spiReceiverControl();
 	
-	SpiReceiver spiR(rst, clk, 
+	SpiReceiver spiR(nRst, clk, 
 						  spiSlaveOut.slave, 
 						  spiSlaveIn.master, 
 						  spiReceiverControl.slave,
@@ -23,13 +23,13 @@ module test_serviceProtocolEncoder();
 	IServiceProtocolDControl servProtoControl();
 				  
 /*
-module ServiceProtocolDecoder(input bit rst, clk,
+module ServiceProtocolDecoder(input bit nRst, clk,
 										IPush.slave receivedData,
 										IPush.master decodedBus,
 										IServiceProtocolDControl.slave control);
 */				  
 				  
-	ServiceProtocolDecoder serviceDecoder(rst, clk, 
+	ServiceProtocolDecoder serviceDecoder(nRst, clk, 
 															spiSlaveIn.slave,
 															decodedBus.master,
 															servProtoControl.slave);
@@ -38,13 +38,13 @@ module ServiceProtocolDecoder(input bit rst, clk,
 	IServiceProtocolEControl servEncoderControl();
 	
 /*
-module ServiceProtocolEncoder(input bit rst, clk,
+module ServiceProtocolEncoder(input bit nRst, clk,
 										IPop.master 	data,
 										IPush.master 	packet,
 										IServiceProtocolEControl control);
 */
 	
-	ServiceProtocolEncoder serviceEncoder(	rst, clk, 
+	ServiceProtocolEncoder serviceEncoder(	nRst, clk, 
 														decodedBus.slave,
 														decodeBus.master,
 														servEncoderControl.slave);
@@ -55,9 +55,9 @@ module ServiceProtocolEncoder(input bit rst, clk,
 	//testbench
 	initial begin
 	clk = 0;
-	rst = 1;
+	nRst = 1;
 	
-	#2 rst = 0; 
+	#2 nRst = 0; 
 	  
 	begin
 				$display("TransmitOverSpi Start");	

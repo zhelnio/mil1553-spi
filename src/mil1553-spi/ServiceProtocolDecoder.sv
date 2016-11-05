@@ -15,7 +15,7 @@ interface IServiceProtocolDControl();
 					output 	enable);
 endinterface
 
-module ServiceProtocolDecoder(input bit rst, clk,
+module ServiceProtocolDecoder(input bit nRst, clk,
 										IPush.slave receivedData,
 										IPush.master decodedBus,
 										IServiceProtocolDControl.slave control);
@@ -36,7 +36,7 @@ module ServiceProtocolDecoder(input bit rst, clk,
 			PACKET_DATA, PACKET_CRC, PACKET_NUM} State, Next;
 	
 	always_ff @ (posedge clk) begin
-		if(rst | !control.enable)
+		if(!nRst | !control.enable)
 			State <= WAIT;
 		else if(receivedData.request) 
 			State <= Next;

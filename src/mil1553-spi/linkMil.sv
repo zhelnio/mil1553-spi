@@ -1,7 +1,7 @@
 `ifndef LINKMIL_INCLUDE
 `define LINKMIL_INCLUDE
 
-module LinkMil(input bit rst, clk,
+module LinkMil(input bit nRst, clk,
                IPush.master	pushFromMil,
                IPush.slave		pushToMil,
                IMilControl.slave milControl,
@@ -10,15 +10,15 @@ module LinkMil(input bit rst, clk,
     IPushMil rmpush();
     IPushMil tmpush();
 	
-    milTransceiver milStd(.rst(rst), .clk(clk),
+    milTransceiver milStd(.nRst(nRst), .clk(clk),
 					                .rpush(rmpush.master), .tpush(tmpush.slave),
 					                .mil(mil), .control(milControl));
 
-    milMemEncoder milToMemEncoder(.rst(rst), .clk(clk), 
+    milMemEncoder milToMemEncoder(.nRst(nRst), .clk(clk), 
                                   .mil(rmpush.slave), 
                                   .push(pushFromMil));
 											
-    memMilEncoder	memToMilEncoder(.rst(rst), .clk(clk), 
+    memMilEncoder	memToMilEncoder(.nRst(nRst), .clk(clk), 
                                   .mil(tmpush.master), 
                                   .push(pushToMil));
 

@@ -2,7 +2,7 @@
 `define AMW_INCLUDE
 
 //memory helper
-module AlteraMemoryWrapper(	input bit rst, clk,
+module AlteraMemoryWrapper(	input bit nRst, clk,
 							IMemory.memory memBus);
 	
 	parameter ReadSimulationDelay = 3'd6;
@@ -18,7 +18,7 @@ module AlteraMemoryWrapper(	input bit rst, clk,
 	assign memBus.rd_ready = (_rcntr == 1);
 	
 	always_ff @ (posedge clk)
-	if(rst)
+	if(!nRst)
 		{_wcntr, _rcntr } <= '0;
 	else begin
 		if(memBus.wr_enable)

@@ -1,7 +1,7 @@
 `timescale 10 ns/ 1 ns
 
 module test_ringBuffer();
-	bit rst, clk;
+	bit nRst, clk;
 	
 	IMemory mbus();
 	IMemoryReader rBus();
@@ -11,11 +11,11 @@ module test_ringBuffer();
 	IPush	push();
 	IPop	pop();
 
-	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
-	MemoryReader	reader(rst, clk, mbus.reader, rBus.slave, abus[1].client);
-	MemoryWriter	writer(rst, clk, mbus.writer, wBus.slave, abus[0].client);
-	Arbiter			arbiter(rst, clk, abus);
-	RingBuffer		ring(rst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
+	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
+	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
+	Arbiter			arbiter(nRst, clk, abus);
+	RingBuffer		ring(nRst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
 	
 	//test helpers
 	IPushHelper pushHelper(clk, push);
@@ -23,10 +23,10 @@ module test_ringBuffer();
 	
 	
   initial begin
-    clk = '1;	rst = '1; 
+    clk = '1;	nRst = '0; 
     {rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
-	  #2	rst = '0;
+	  #2	nRst = '1;
 
     assert (rcontrol.memUsed == 0);
     
@@ -51,7 +51,7 @@ module test_ringBuffer();
 endmodule
 
 module test_ringBufferOverflow();
-	bit rst, clk;
+	bit nRst, clk;
 	
 	IMemory mbus();
 	IMemoryReader rBus();
@@ -61,23 +61,23 @@ module test_ringBufferOverflow();
 	IPush	push();
 	IPop	pop();
 
-	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
-	MemoryReader	reader(rst, clk, mbus.reader, rBus.slave, abus[1].client);
-	MemoryWriter	writer(rst, clk, mbus.writer, wBus.slave, abus[0].client);
-	Arbiter			arbiter(rst, clk, abus);
+	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
+	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
+	Arbiter			arbiter(nRst, clk, abus);
 	
 	RingBuffer	#(.MEM_START_ADDR(16'h00), .MEM_END_ADDR(16'h02))	
-	           ring(rst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
+	           ring(nRst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
      
 	//test helpers
 	IPushHelper pushHelper(clk, push);
 	IPopHelper  popHelper(clk, pop);
 	
   initial begin
-    clk = '1;	rst = '1; 
+    clk = '1;	nRst = '0; 
     {rcontrol.open, rcontrol.commit, rcontrol.rollback} = '0;
 	
-	  #2	rst = '0;
+	  #2	nRst = '1;
 	  assert (rcontrol.memUsed == 0);
     pushHelper.doPush(16'hABCD);
     assert (rcontrol.memUsed == 1);
@@ -105,7 +105,7 @@ endmodule
 
 
 module test_ringBufferConcurentOverflow();
-	bit rst, clk;
+	bit nRst, clk;
 	
 	IMemory mbus();
 	IMemoryReader rbus[1:0]();
@@ -115,18 +115,18 @@ module test_ringBufferConcurentOverflow();
 	IPush	push[1:0]();
 	IPop	pop[1:0]();
 
-	Arbiter			arbiter(rst, clk, abus);
-	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
-	MemoryWriter	writerA(rst, clk, mbus.writer, wbus[0].slave, abus[0].client);
-	MemoryWriter	writerB(rst, clk, mbus.writer, wbus[1].slave, abus[1].client);
-	MemoryReader	readerA(rst, clk, mbus.reader, rbus[0].slave, abus[2].client);
-	MemoryReader	readerB(rst, clk, mbus.reader, rbus[1].slave, abus[3].client);
+	Arbiter			arbiter(nRst, clk, abus);
+	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryWriter	writerA(nRst, clk, mbus.writer, wbus[0].slave, abus[0].client);
+	MemoryWriter	writerB(nRst, clk, mbus.writer, wbus[1].slave, abus[1].client);
+	MemoryReader	readerA(nRst, clk, mbus.reader, rbus[0].slave, abus[2].client);
+	MemoryReader	readerB(nRst, clk, mbus.reader, rbus[1].slave, abus[3].client);
 	
 	RingBuffer			#(.MEM_START_ADDR(16'h00), .MEM_END_ADDR(16'h02))
-					ringA	 (rst, clk, rcontrol[0].slave, push[0].slave, pop[0].slave, wbus[0].master, rbus[0].master);
+					ringA	 (nRst, clk, rcontrol[0].slave, push[0].slave, pop[0].slave, wbus[0].master, rbus[0].master);
 
 	RingBuffer			#(.MEM_START_ADDR(16'h10), .MEM_END_ADDR(16'h12))
-					ringB	 (rst, clk, rcontrol[1].slave, push[1].slave, pop[1].slave, wbus[1].master, rbus[1].master);
+					ringB	 (nRst, clk, rcontrol[1].slave, push[1].slave, pop[1].slave, wbus[1].master, rbus[1].master);
 					
 	//test helpers
 	IPushHelper pushHelperA(clk, push[0]);
@@ -135,10 +135,10 @@ module test_ringBufferConcurentOverflow();
 	IPopHelper  popHelperB(clk, pop[1]);
 	
 	initial begin
-    clk = '1;	rst = '1;
+    clk = '1;	nRst = '0;
     {rcontrol[0].open, rcontrol[0].commit, rcontrol[0].rollback} = '0;
     {rcontrol[1].open, rcontrol[1].commit, rcontrol[1].rollback} = '0;
-    #2	rst = '0;
+    #2	nRst = '1;
 	
     fork
       begin

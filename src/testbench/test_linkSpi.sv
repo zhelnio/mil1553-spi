@@ -4,20 +4,20 @@ module test_linkSpi();
 	
 	import milStd1553::*;
 	
-	bit rst, clk;
+	bit nRst, clk;
 	ISpi     spi();
 	
 	//debug spi transmitter
 	IPush        spiPush();
 	IPushHelper 	spiDebug(clk, spiPush);
-	DebugSpiTransmitter 	spiTrans(rst, clk, spiPush, spi);
+	DebugSpiTransmitter 	spiTrans(nRst, clk, spiPush, spi);
 	
 	//DUT modules
 	IPush pushFromSpi();
 	IPop popToSpi();
 	ILinkSpiControl  control();
 	
-	LinkSpi linkSpi(.rst(rst), .clk(clk),
+	LinkSpi linkSpi(.nRst(nRst), .clk(clk),
 	                .spi(spi), 
 	                .pushFromSpi(pushFromSpi),
 	                .popToSpi(popToSpi),
@@ -28,8 +28,8 @@ module test_linkSpi();
 
 	initial begin
 	
-		  rst = 1;
-	#20 rst = 0;
+		nRst = 0;
+	#20 nRst = 1;
 
 			//send data to spi Mil
 			begin

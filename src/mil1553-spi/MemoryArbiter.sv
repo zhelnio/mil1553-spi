@@ -1,7 +1,7 @@
 `ifndef ARBITER_INCLUDE
 `define ARBITER_INCLUDE
 
-module Arbiter(input bit rst, clk,
+module Arbiter(input bit nRst, clk,
 					IArbiter.arbiter client[3:0]);
 
 	logic [3:0] requestedChannel, 
@@ -14,7 +14,7 @@ module Arbiter(input bit rst, clk,
 										client[1].request, client[0].request};
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			grantedChannel <= '0;
 		else
 			grantedChannel <= newGrantedChannel;
@@ -33,7 +33,7 @@ module Arbiter(input bit rst, clk,
 			
 endmodule
 
-module Arbiter8(input bit rst, clk,
+module Arbiter8(input bit nRst, clk,
 				IArbiter.arbiter client[7:0]);
 
 	logic [7:0] requestedChannel, 
@@ -47,9 +47,8 @@ module Arbiter8(input bit rst, clk,
 			  client[3].request, client[2].request, client[1].request, client[0].request};
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			grantedChannel <= '0;
-			//grantedChannel <= 8'b00000001;
 		else
 			grantedChannel <= newGrantedChannel;
 
@@ -66,7 +65,6 @@ module Arbiter8(input bit rst, clk,
 			else if(requestedChannel & 8'b01000000) newGrantedChannel = 8'b01000000;
 			else if(requestedChannel & 8'b10000000) newGrantedChannel = 8'b10000000;
 			else newGrantedChannel = '0;
-			//else newGrantedChannel = 8'b00000001;
 		end
 	end
 			

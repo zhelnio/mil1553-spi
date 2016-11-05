@@ -1,7 +1,7 @@
 `ifndef MEMORYWRITER_INCLUDE
 `define MEMORYWRITER_INCLUDE
 
-module MemoryWriter(input bit rst, clk, 
+module MemoryWriter(input bit nRst, clk, 
 						  IMemory.writer mbus,
 						  IMemoryWriter.slave cbus,
 						  IArbiter.client abus
@@ -9,7 +9,7 @@ module MemoryWriter(input bit rst, clk,
 	enum {IDLE, WAIT_ACTION, PRE_ACTION, ACTION, POST_ACTION } State, Next;
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			State <= IDLE;
 		else
 			State <= Next;

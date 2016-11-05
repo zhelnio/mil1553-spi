@@ -9,15 +9,15 @@ interface IMilTxControl();
 
 endinterface
 
-module milTransmitter(input bit rst, clk, ioClk, 
+module milTransmitter(input bit nRst, clk, ioClk, 
 						          IPushMil.slave push,
 						          IMilStd.tx mil,
 						          IMilTxControl.slave control);
   import milStd1553::*;
 	
 	logic upIoClk, downIoClk;
-	upFront		up(rst, clk, ioClk, upIoClk);
-	downFront 	down(rst, clk, ioClk, downIoClk);
+	upFront		up(nRst, clk, ioClk, upIoClk);
+	downFront 	down(nRst, clk, ioClk, downIoClk);
 	
 	enum logic[3:0] {IDLE, LOAD, DATA, PARITY, POSTFIX1, POSTFIX2,
 						  L01, L02, H11, H12, H01, H02, L11, L12} State, Next;
@@ -35,14 +35,14 @@ module milTransmitter(input bit rst, clk, ioClk,
 	assign control.request = dataInQueue || control.busy;
 	
 	always_ff @ (posedge clk) begin
-		if(rst)
+		if(!nRst)
 			State <= IDLE;
 		else
 			State <= Next;
 	end
 	
 	always_ff @ (posedge clk) begin
-		if(rst)
+		if(!nRst)
 			dataInQueue <= 0;
 		else begin
 			if(push.request & !dataInQueue)

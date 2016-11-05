@@ -1,7 +1,7 @@
 `ifndef MILSPIBLOCK2_INCLUDE
 `define MILSPIBLOCK2_INCLUDE
 
-module MilSpiBlock2	(	input logic rst, clk,							
+module MilSpiBlock2	(	input logic nRst, clk,							
 						ISpi			spi,	
 						IMilStd			mil0,
 						IMilStd			mil1,
@@ -17,7 +17,7 @@ module MilSpiBlock2	(	input logic rst, clk,
 						IRingBufferControl.master rcontrolSM0,	// spi -> mil0
 						IRingBufferControl.master rcontrolMS1,	// mil1 -> spi
 						IRingBufferControl.master rcontrolSM1,	// spi -> mil1
-						output logic resetRequest);
+						output logic nResetRequest);
 
 	parameter SPI_BLOCK_ADDR0 = 8'hAB;
 	parameter SPI_BLOCK_ADDR1 = 8'hAC;
@@ -42,46 +42,46 @@ module MilSpiBlock2	(	input logic rst, clk,
 	IStatusInfoControl statusControl1();
 
 	//mil0 -> mem
-	LinkMil linkMil0(.rst(rst), .clk(clk),
+	LinkMil linkMil0(.nRst(nRst), .clk(clk),
 					.pushFromMil(pushFromMil0),     
 					.pushToMil(tMilPush0),         
 					.milControl(milControl0.slave),
 					.mil(mil0));
 
 	//mil1 -> mem
-	LinkMil linkMil1(.rst(rst), .clk(clk),
+	LinkMil linkMil1(.nRst(nRst), .clk(clk),
 					.pushFromMil(pushFromMil1),     
 					.pushToMil(tMilPush1),         
 					.milControl(milControl1.slave),
 					.mil(mil1));
 
 	//mil0 <- busPusher(enablePushToMil0) <- mem
-	BusPusher busPusher0(.rst(rst), .clk(clk),
+	BusPusher busPusher0(.nRst(nRst), .clk(clk),
 						.enable(enablePushToMil0),
 						.push(tMilPush0.master),
 						.pop(popToMil0));
 
 	//mil1 <- busPusher(enablePushToMil1) <- mem
-	BusPusher busPusher1(.rst(rst), .clk(clk),
+	BusPusher busPusher1(.nRst(nRst), .clk(clk),
 						.enable(enablePushToMil1),
 						.push(tMilPush1.master),
 						.pop(popToMil1));
 
-	LinkSpi linkSpi(.rst(rst), .clk(clk),
+	LinkSpi linkSpi(.nRst(nRst), .clk(clk),
 					.spi(spi.slave),
 					.pushFromSpi(rSpiPush.master),
 					.popToSpi(tSpiPop.master),
 					.control(spiControl.slave));
 	
 	//spi -> PushMux(muxKeyPushFromSpi) => mem0, mem1
-	PushMux pushMux(.rst(rst), .clk(clk),
+	PushMux pushMux(.nRst(nRst), .clk(clk),
 					.key(muxKeyPushFromSpi),
 					.in(rSpiPush),
 					.out0(pushFromSpi0),
 					.out1(pushFromSpi1));
 	
 	//spi <- BusMux2(muxKeyPopToSpi) <= mem0, status0, mem1, status1
-	BusMux2 busMux(	.rst(rst), .clk(clk),
+	BusMux2 busMux(	.nRst(nRst), .clk(clk),
 					.key(muxKeyPopToSpi),
 					.out(tSpiPop.slave),
 					.in0(popToSpi0),
@@ -90,12 +90,12 @@ module MilSpiBlock2	(	input logic rst, clk,
 					.in3(tStatPop1.master));
 
 	//status word generator
-	StatusInfo statusInfo0(	.rst(rst), .clk(clk),
+	StatusInfo statusInfo0(	.nRst(nRst), .clk(clk),
 							.out(tStatPop0.slave),
 							.control(statusControl0));
 	
 	//status word generator
-	StatusInfo statusInfo1(	.rst(rst), .clk(clk),
+	StatusInfo statusInfo1(	.nRst(nRst), .clk(clk),
 							.out(tStatPop1.slave),
 							.control(statusControl1));
 	
@@ -107,7 +107,7 @@ module MilSpiBlock2	(	input logic rst, clk,
 
 	//command processing 
 	logic [6:0] confOut;
-	assign { muxKeyPushFromSpi, muxKeyPopToSpi, spiControl.outEnable, resetRequest } = confOut;
+	assign { muxKeyPushFromSpi, muxKeyPopToSpi, spiControl.outEnable, nResetRequest } = confOut;
 	assign enablePushToMil0 = (rcontrolSM0.memUsed != 0);
 	assign enablePushToMil1 = (rcontrolSM1.memUsed != 0);
 
@@ -120,7 +120,7 @@ module MilSpiBlock2	(	input logic rst, clk,
 	assign confIn[5] = (spiControl.inCmdCode == TCC_RECEIVE_DATA);
 
 	always_ff @ (posedge clk) begin
-		if(rst) begin
+		if(!nRst) begin
 			{rcontrolMS0.open, rcontrolMS0.commit, rcontrolMS0.rollback} = '0;
 			{rcontrolSM0.open, rcontrolSM0.commit, rcontrolSM0.rollback} = '0;
 			{rcontrolMS1.open, rcontrolMS1.commit, rcontrolMS1.rollback} = '0;
@@ -130,14 +130,14 @@ module MilSpiBlock2	(	input logic rst, clk,
 
 	always_comb begin
 		case(confIn)
-			default:	confOut = 7'b1?1??00; 
-			6'b100001:	confOut = 7'b1?00010; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
-			6'b010001:	confOut = 7'b1?00110; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR0
-			6'b001001:	confOut = 7'b001??00; // TCC_SEND_DATA from SPI_BLOCK_ADDR0
-			6'b000101:	confOut = 7'b1?1??01; // TCC_RESET from SPI_BLOCK_ADDR0
-			6'b100010:	confOut = 7'b1?01010; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR1
-			6'b010010:	confOut = 7'b1?01110; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR1
-			6'b001010:	confOut = 7'b011??00; // TCC_SEND_DATA from SPI_BLOCK_ADDR1
+			default:	confOut = 7'b1?1??01; 
+			6'b100001:	confOut = 7'b1?00011; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
+			6'b010001:	confOut = 7'b1?00111; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR0
+			6'b001001:	confOut = 7'b001??01; // TCC_SEND_DATA from SPI_BLOCK_ADDR0
+			6'b000101:	confOut = 7'b1?1??00; // TCC_RESET from SPI_BLOCK_ADDR0
+			6'b100010:	confOut = 7'b1?01011; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR1
+			6'b010010:	confOut = 7'b1?01111; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR1
+			6'b001010:	confOut = 7'b011??01; // TCC_SEND_DATA from SPI_BLOCK_ADDR1
 			6'b000110:	confOut = 7'b1?1??01; // TCC_RESET from SPI_BLOCK_ADDR1
 		endcase
 	end

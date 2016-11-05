@@ -11,7 +11,7 @@ interface IRingBufferControl();
 	modport slave(output memUsed, input open, commit, rollback);
 endinterface
 
-module RingBuffer(input bit rst, clk, 
+module RingBuffer(input bit nRst, clk, 
 						IRingBufferControl.slave control,
 						IPush.slave push,
 						IPop.slave pop,
@@ -48,7 +48,7 @@ module RingBuffer(input bit rst, clk,
 	assign isInTransaction = control.open | isInTransactionFlag;
 	
 	always_ff @ (posedge clk)
-		if(rst) begin
+		if(!nRst) begin
 			waddr <= MEM_START_ADDR;
 			raddr <= MEM_START_ADDR;
 			taddr <= MEM_START_ADDR;

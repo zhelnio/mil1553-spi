@@ -29,7 +29,7 @@ interface ILinkSpiControl();
 				  	output 	outEnable, outCmdCode, outDataSize, outAddr);
 endinterface
 
-module LinkSpi(	input bit 		rst, clk, 
+module LinkSpi(	input bit 		nRst, clk, 
 				ISpi.slave 		spi,
 				IPush.master	pushFromSpi,
 				IPop.master		popToSpi,
@@ -38,17 +38,17 @@ module LinkSpi(	input bit 		rst, clk,
 	IPush rspi();
 	IPush tspi();
 	ISpiReceiverControl spiControl();
-	SpiReceiver spiReceiver(.rst(rst), .clk(clk),
+	SpiReceiver spiReceiver(.nRst(nRst), .clk(clk),
 	                        .transmitBus(tspi.slave), .receiveBus(rspi.master),
 	                        .controlBus(spiControl.slave), .spi(spi));
 	
 	IServiceProtocolDControl decoderControl();
-	ServiceProtocolDecoder spDecoder(.rst(rst), .clk(clk),
+	ServiceProtocolDecoder spDecoder(.nRst(nRst), .clk(clk),
 	                                 .receivedData(rspi.slave), .decodedBus(pushFromSpi),
 	                                 .control(decoderControl.slave));
   
 	IServiceProtocolEControl encoderControl();
-	ServiceProtocolEncoder spEncoder(.rst(rst), .clk(clk),
+	ServiceProtocolEncoder spEncoder(.nRst(nRst), .clk(clk),
 									 .data(popToSpi), .packet(tspi.master),
 									 .control(encoderControl.slave));
   

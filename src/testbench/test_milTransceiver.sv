@@ -3,7 +3,7 @@
 module test_milTransceiver();
   import milStd1553::*;
   
-  bit rst, clk;
+  bit nRst, clk;
   IMilStd mil();
   assign mil.RXin  = mil.TXout;
 	assign mil.nRXin = mil.nTXout;
@@ -11,21 +11,21 @@ module test_milTransceiver();
   IPushMil rpush0();
   IPushMil tpush0();
   IMilControl control0();
-  milTransceiver tr0(rst, clk, rpush0, tpush0, mil, control0);
+  milTransceiver tr0(nRst, clk, rpush0, tpush0, mil, control0);
   
   IPushMil rpush1();
   IPushMil tpush1();
   IMilControl control1();
-  milTransceiver tr1(rst, clk, rpush1, tpush1, mil, control1);
+  milTransceiver tr1(nRst, clk, rpush1, tpush1, mil, control1);
   
   IPushMilHelper pushHelper0(clk, tpush0);
   IPushMilHelper pushHelper1(clk, tpush1);
   
 	initial begin
-		rst = 1; 
+		nRst = 0; 
 		@(posedge clk);
 		@(posedge clk);
-		rst = 0;
+		nRst = 1;
 		
 		fork	
 		

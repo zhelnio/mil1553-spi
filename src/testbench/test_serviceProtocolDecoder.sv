@@ -2,20 +2,20 @@
 
 module test_serviceProtocolDecoder();
   import ServiceProtocol::*;
-	bit rst, clk;
+	bit nRst, clk;
 
 	//debug spi transmitter
 	ISpi spiBus();
 	IPush spiPush();
 	IPushHelper 		spiHelper(clk, spiPush);
-	DebugSpiTransmitter 	spiTrans(rst, clk, spiPush, spiBus);
+	DebugSpiTransmitter 	spiTrans(nRst, clk, spiPush, spiBus);
 	
 	//receiver and unpacker
 	IPush spiOut();
 	IPush spiIn();
 	ISpiReceiverControl spiControl();
 	
-	SpiReceiver spiR(rst, clk, 
+	SpiReceiver spiR(nRst, clk, 
 						  spiOut.slave, 
 						  spiIn.master, 
 						  spiControl.slave,
@@ -24,15 +24,15 @@ module test_serviceProtocolDecoder();
 	IPush unpackerOut();
 	IServiceProtocolDControl unpackerControl();
 				  
-	ServiceProtocolDecoder serviceUnpacker(rst, clk, 
+	ServiceProtocolDecoder serviceUnpacker(nRst, clk, 
 															spiIn.slave,
 															unpackerOut.master,
 															unpackerControl.slave);
 	
 	//testbench
 	initial begin
-    clk = 0; rst = 1;
-    #2 rst = 0; 
+    clk = 0; nRst = 0;
+    #2 nRst = 1; 
 	
     fork
       begin

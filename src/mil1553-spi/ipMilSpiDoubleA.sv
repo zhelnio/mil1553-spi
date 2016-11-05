@@ -1,7 +1,7 @@
 `ifndef MILSPIDOUBLE_INCLUDE
 `define MILSPIDOUBLE_INCLUDE
 
-module IpMilSpiDoubleA(input logic clk, rst,
+module IpMilSpiDoubleA(input logic clk, nRst,
                       ISpi spi0,
                       ISpi spi1,
                       IMilStd mil0,
@@ -21,13 +21,13 @@ module IpMilSpiDoubleA(input logic clk, rst,
   IPop memToMil1();
   IRingBufferControl milToSpiRBControl1();
   IRingBufferControl spiToMilRBControl1();
-  logic resetRequest0, resetRequest1, resetSignal;
+  logic nResetRequest0, nResetRequest1, nResetSignal;
   
-  ResetGenerator  resetGenerator(.rst(rst), .clk(clk),
-                                 .resetRequest(resetRequest0 | resetRequest1),
-                                 .resetSignal(resetSignal));
+  ResetGenerator  resetGenerator(.nRst(nRst), .clk(clk),
+                                 .nResetRequest(nResetRequest0 & nResetRequest1),
+                                 .nResetSignal(nResetSignal));
   
-  MilSpiBlock milSpiBlock0(.rst(resetSignal), .clk(clk),
+  MilSpiBlock milSpiBlock0(.nRst(nResetSignal), .clk(clk),
                           .spi(spi0), .mil(mil0),
                           .pushFromMil(milToMem0.master),
                           .pushFromSpi(spiToMem0.master),
@@ -35,9 +35,9 @@ module IpMilSpiDoubleA(input logic clk, rst,
                           .popToMil(memToMil0.master),
                           .rcontrolMS(milToSpiRBControl0.master),
                           .rcontrolSM(spiToMilRBControl0.master),
-                          .resetRequest(resetRequest0));
+                          .nResetRequest(nResetRequest0));
                           
-  MilSpiBlock milSpiBlock1(.rst(resetSignal), .clk(clk),
+  MilSpiBlock milSpiBlock1(.nRst(nResetSignal), .clk(clk),
                           .spi(spi1), .mil(mil1),
                           .pushFromMil(milToMem1.master),
                           .pushFromSpi(spiToMem1.master),
@@ -45,9 +45,9 @@ module IpMilSpiDoubleA(input logic clk, rst,
                           .popToMil(memToMil1.master),
                           .rcontrolMS(milToSpiRBControl1.master),
                           .rcontrolSM(spiToMilRBControl1.master),
-                          .resetRequest(resetRequest1));
+                          .nResetRequest(nResetRequest1));
                       
-  MemoryBlock2 memoryBlock(.rst(resetSignal), .clk(clk),
+  MemoryBlock2 memoryBlock(.nRst(nResetSignal), .clk(clk),
                           .push0(spiToMem0.slave),
                           .push1(spiToMem1.slave),
                           .push2(milToMem0.slave),

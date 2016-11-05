@@ -1,7 +1,7 @@
 `timescale 10 ns/ 1 ns
 
 module test_milTransmitter();
-	bit rst, clk, ioClk; 
+	bit nRst, clk, ioClk; 
 	
 	import milStd1553::*;
 	
@@ -10,13 +10,13 @@ module test_milTransmitter();
 	IMilStd mil();
 	IMilTxControl control();
 	
-	milTransmitter t(rst, clk, ioClk, push, mil, control);
+	milTransmitter t(nRst, clk, ioClk, push, mil, control);
 	
 	initial begin
-		rst = 1; control.grant = 0;
+		nRst = 0; control.grant = 0;
 		@(posedge clk);
 		@(posedge clk);
-		rst = 0;
+		nRst = 1;
 		
 		fork
 		  #600 control.grant = 1;

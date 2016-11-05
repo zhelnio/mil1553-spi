@@ -1,7 +1,7 @@
 `ifndef MILSPIBLOCK_INCLUDE
 `define MILSPIBLOCK_INCLUDE
 
-module MilSpiBlock	(	input logic rst, clk,							
+module MilSpiBlock	(	input logic nRst, clk,							
 						ISpi			spi,	
 						IMilStd			mil,
 						IPush.master 	pushFromMil,	//from mil
@@ -10,7 +10,7 @@ module MilSpiBlock	(	input logic rst, clk,
 						IPop.master		popToMil,		//to mil
 						IRingBufferControl.master rcontrolMS,	// mil -> spi
 						IRingBufferControl.master rcontrolSM,	// spi -> mil
-						output logic resetRequest);
+						output logic nResetRequest);
 
 	parameter SPI_BLOCK_ADDR = 8'hAB;
 
@@ -29,39 +29,39 @@ module MilSpiBlock	(	input logic rst, clk,
 	IStatusInfoControl statusControl();
   
 	//mil -> mem
-	LinkMil linkMil(.rst(rst), .clk(clk),
+	LinkMil linkMil(.nRst(nRst), .clk(clk),
 					.pushFromMil(pushFromMil),     
 					.pushToMil(tMilPush),         
 					.milControl(milControl.slave),
 					.mil(mil));
 
 	//mil <- busPusher(enablePushToMil) <- mem
-	BusPusher busPusher(.rst(rst), .clk(clk),
+	BusPusher busPusher(.nRst(nRst), .clk(clk),
 						.enable(enablePushToMil),
 						.push(tMilPush.master),
 						.pop(popToMil));                
 	
-	LinkSpi linkSpi(.rst(rst), .clk(clk),
+	LinkSpi linkSpi(.nRst(nRst), .clk(clk),
 					.spi(spi.slave),
 					.pushFromSpi(rSpiPush.master),
 					.popToSpi(tSpiPop.master),
 					.control(spiControl.slave));
 					
 	//spi -> busGate(enablePushFromSpi) -> mem
-	BusGate busGate(.rst(rst), .clk(clk),
+	BusGate busGate(.nRst(nRst), .clk(clk),
 					.enable(enablePushFromSpi),
 					.in(rSpiPush.slave),
 					.out(pushFromSpi));
 					
 	//spi <- busMux(muxKeyPopToSpi) <= mem, status
-	BusMux busMus(	.rst(rst), .clk(clk),
+	BusMux busMus(	.nRst(nRst), .clk(clk),
 					.key(muxKeyPopToSpi),
 					.out(tSpiPop.slave),
 					.in0(popToSpi),
 					.in1(tStatPop.master));
 	
 	//status word generator
-	StatusInfo statusInfo(	.rst(rst), .clk(clk),
+	StatusInfo statusInfo(	.nRst(nRst), .clk(clk),
 							.out(tStatPop.slave),
 							.control(statusControl));
 	
@@ -84,14 +84,14 @@ module MilSpiBlock	(	input logic rst, clk,
 	assign enablePushToMil = (rcontrolSM.memUsed != 0);
 				
 	always_ff @ (posedge clk) begin
-		if(rst) begin
-			resetRequest <= 0;
+		if(!nRst) begin
+			nResetRequest <= 1;
 			{rcontrolMS.open, rcontrolMS.commit, rcontrolMS.rollback} = '0;
 			{rcontrolSM.open, rcontrolSM.commit, rcontrolSM.rollback} = '0;
 		end
 			
 		if(commandCode == TCC_RESET)
-			resetRequest <= 1;
+			nResetRequest <= 0;
 	end
 		
 	always_comb begin

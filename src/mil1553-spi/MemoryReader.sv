@@ -1,7 +1,7 @@
 `ifndef MEMORYREADER_INCLUDE
 `define MEMORYREADER_INCLUDE
 
-module MemoryReader(input bit rst, clk, 
+module MemoryReader(input bit nRst, clk, 
 						  IMemory.reader mbus,			//memory side
 						  IMemoryReader.slave cbus,	//reader data side
 						  IArbiter.client abus			//arbiter side
@@ -9,7 +9,7 @@ module MemoryReader(input bit rst, clk,
 	enum {IDLE, WAIT_ACTION, PRE_ACTION, ACTION, POST_ACTION } State, Next;
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			State <= IDLE;
 		else begin
 			State <= Next;

@@ -36,14 +36,14 @@ interface IPopMilHelper(input logic clk, IPopMil.master pop);
   
 endinterface
 
-module DebugMilTransmitter(	input bit rst, clk,
+module DebugMilTransmitter(	input bit nRst, clk,
 							IPushMil.slave push,
 							IMilStd mil);	
 	import milStd1553::*;
 							   
 	IPushMil rpush();
 	IMilControl control();
-	milTransceiver tr(rst, clk, rpush, push, mil, control);
+	milTransceiver tr(nRst, clk, rpush, push, mil, control);
 
 	always_ff @ (posedge clk) begin
 		if(rpush.request) begin

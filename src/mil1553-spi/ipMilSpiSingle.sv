@@ -1,7 +1,7 @@
 `ifndef MILSPISINGLE_INCLUDE
 `define MILSPISINGLE_INCLUDE
     
-module IpMilSpiSingle(input logic clk, rst,
+module IpMilSpiSingle(input logic clk, nRst,
                       ISpi spi,
                       IMilStd mil,
                       IMemory 	mbus);
@@ -12,13 +12,13 @@ module IpMilSpiSingle(input logic clk, rst,
   IPop memToMil();
   IRingBufferControl milToSpiRBControl();
   IRingBufferControl spiToMilRBControl();
-  logic resetRequest, resetSignal;
+  logic nResetRequest, nResetSignal;
   
-  ResetGenerator  resetGenerator(.rst(rst), .clk(clk),
-                                 .resetRequest(resetRequest),
-                                 .resetSignal(resetSignal));
+  ResetGenerator  resetGenerator(.nRst(nRst), .clk(clk),
+                                 .nResetRequest(nResetRequest),
+                                 .nResetSignal(nResetSignal));
   
-  MilSpiBlock milSpiBlock(.rst(resetSignal), .clk(clk),
+  MilSpiBlock milSpiBlock(.nRst(nResetSignal), .clk(clk),
                           .spi(spi), .mil(mil),
                           .pushFromMil(milToMem.master),
                           .pushFromSpi(spiToMem.master),
@@ -26,9 +26,9 @@ module IpMilSpiSingle(input logic clk, rst,
                           .popToMil(memToMil.master),
                           .rcontrolMS(milToSpiRBControl.master),
                           .rcontrolSM(spiToMilRBControl.master),
-                          .resetRequest(resetRequest));
+                          .nResetRequest(nResetRequest));
                           
-  MemoryBlock memoryBlock(.rst(resetSignal), .clk(clk),
+  MemoryBlock memoryBlock(.nRst(nResetSignal), .clk(clk),
                           .push0(spiToMem.slave),
                           .push1(milToMem.slave),
                           .pop0(memToMil.slave),

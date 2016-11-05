@@ -1,7 +1,7 @@
 `ifndef COMMON_INCLUDE
 `define COMMON_INCLUDE
 
-module signalChange(	input 	bit	rst,
+module signalChange(	input 	bit	nRst,
 							input 	bit	clk,
 							input 	bit 	signal,
 							output 	bit	strobe);
@@ -9,13 +9,13 @@ module signalChange(	input 	bit	rst,
 	assign strobe = buffer[1] ^ buffer[0];
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			buffer <= 0;
 		else	
 			buffer <= {buffer[0], signal};
 endmodule
 
-module upFront(input 	bit	rst,
+module upFront(input 	bit	nRst,
 					input 	bit	clk,
 					input 	bit 	signal,
 					output 	bit	strobe);
@@ -24,13 +24,13 @@ module upFront(input 	bit	rst,
 	assign strobe = !buffer[1] & buffer[0];
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			buffer <= 0;
 		else	
 			buffer <= {buffer[0], signal};
 endmodule
 
-module downFront(	input 	bit	rst,
+module downFront(	input 	bit	nRst,
 						input 	bit	clk,
 						input 	bit 	signal,
 						output 	bit	strobe);
@@ -39,13 +39,13 @@ module downFront(	input 	bit	rst,
 	assign strobe = buffer[1] & !buffer[0];
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			buffer <= 0;
 		else	
 			buffer <= {buffer[0], signal};
 endmodule
 
-module inputFilter(	input 	bit	rst,
+module inputFilter(	input 	bit	nRst,
 							input 	bit	clk,
 							input 	bit 	signal,
 							output 	bit	out);
@@ -53,7 +53,7 @@ module inputFilter(	input 	bit	rst,
 	assign out = buffer[1];
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			buffer <= 0;
 		else	
 			buffer <= {buffer[0], signal};

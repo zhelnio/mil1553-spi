@@ -10,7 +10,7 @@ interface IMilControl();
 
 endinterface
 
-module milTransceiver(	input bit rst, clk,
+module milTransceiver(	input bit nRst, clk,
 					             IPushMil.master rpush,
 					 	           IPushMil.slave tpush,
 					             IMilStd mil,
@@ -22,26 +22,26 @@ module milTransceiver(	input bit rst, clk,
 	logic [3:0] cntr, nextCntr;
 	
 	IMilTxControl tcontrol();
-	milTransmitter t(rst, clk, ioClk, tpush, mil, tcontrol);
+	milTransmitter t(nRst, clk, ioClk, tpush, mil, tcontrol);
 	
 	IMilRxControl rcontrol();
-	milReceiver r(rst, clk, mil, rpush, rcontrol);
+	milReceiver r(nRst, clk, mil, rpush, rcontrol);
 	
 	enum logic[1:0] {RECEIVE, TRANSMIT, WAIT} State, Next;
 
-	ioClkGenerator ioClkGen(rst, clk, ioClk);
+	ioClkGenerator ioClkGen(nRst, clk, ioClk);
 
 	assign control.receiverBusy = rcontrol.busy;
 	assign control.transmitterBusy = tcontrol.busy;
 	
-	upFront		packetStartStrobe(rst, clk, rcontrol.busy, control.packetStart);
-	downFront	packetEndStrobe(rst, clk, rcontrol.busy, control.packetEnd);
+	upFront		packetStartStrobe(nRst, clk, rcontrol.busy, control.packetStart);
+	downFront	packetEndStrobe(nRst, clk, rcontrol.busy, control.packetEnd);
 	
 	logic upIoClk;
-	upFront		upIoClkStrobe(rst, clk, ioClk, upIoClk);
+	upFront		upIoClkStrobe(nRst, clk, ioClk, upIoClk);
 	
 	always_ff @ (posedge clk) begin
-		if(rst) begin
+		if(!nRst) begin
 			State <= RECEIVE;
 			cntr <= 0;
 			end
@@ -70,7 +70,7 @@ module milTransceiver(	input bit rst, clk,
 
 endmodule	
 
-module ioClkGenerator(input bit rst, clk, 
+module ioClkGenerator(input bit nRst, clk, 
 							 output logic ioClk);
 	parameter period = 49;
 	logic [5:0] cntr, nextCntr;
@@ -78,7 +78,7 @@ module ioClkGenerator(input bit rst, clk,
 	assign nextCntr = (cntr == period) ? 0 : (cntr + 1);
 	
 	always_ff @ (posedge clk)
-	if(rst) begin
+	if(!nRst) begin
 		cntr <= '0;
 		ioClk <= 1'b0;
 		end

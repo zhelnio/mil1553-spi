@@ -1,7 +1,7 @@
 `timescale 10 ns/ 1 ns
 
 module test_milReceiver();
-	bit rst, clk, ioClk; 
+	bit nRst, clk, ioClk; 
 
 	import milStd1553::*;
 	
@@ -15,16 +15,16 @@ module test_milReceiver();
 	assign mil.nRXin = mil.nTXout;
 	
 	IMilTxControl tcontrol();
-	milTransmitter t(rst, clk, ioClk, tpush, mil, tcontrol);
+	milTransmitter t(nRst, clk, ioClk, tpush, mil, tcontrol);
 	
 	IMilRxControl rcontrol();
-	milReceiver r(rst, clk, mil, rpush, rcontrol);
+	milReceiver r(nRst, clk, mil, rpush, rcontrol);
 	
 	initial begin
-		rst = 1; 
+		nRst = 0; 
 		@(posedge clk);
 		@(posedge clk);
-		rst = 0;
+		nRst = 1;
 		
 		fork
 		  #300 rcontrol.grant = 1;

@@ -4,12 +4,12 @@
 interface IMilRxControl();
 	logic grant, busy;
 
-	modport slave(input grant, output busy);
-	modport master(output grant, input busy);
+	modport slave(	input grant, output busy);
+	modport master(	output grant, input busy);
 
 endinterface
 
-module milReceiver(input bit rst, clk,
+module milReceiver(	input bit nRst, clk,
 					 IMilStd.rx mil,
 					 IPushMil.master push,
 					 IMilRxControl.slave control);
@@ -20,7 +20,7 @@ module milReceiver(input bit rst, clk,
 	assign signal = (control.grant) ? mil.RXin : 1'b0;
 	
 	logic readStrobe;
-	readStrobeGenerator strobeGen(rst, clk, signal, readStrobe);
+	readStrobeGenerator strobeGen(nRst, clk, signal, readStrobe);
 	
 	struct packed {
 		logic [1:0]		prev;
@@ -36,10 +36,10 @@ module milReceiver(input bit rst, clk,
 	MilData data;
 	logic [16:0] error;
 	
-	upFront wordReceivedUp(rst, clk, wordReceived, push.request);
+	upFront wordReceivedUp(nRst, clk, wordReceived, push.request);
 	
 	always_ff @ (posedge clk) begin
-		if(rst)
+		if(!nRst)
 			buffer <= '0;
 		else begin
 			if(readStrobe)
@@ -78,9 +78,9 @@ module milReceiver(input bit rst, clk,
 
 endmodule
 
-module readStrobeGenerator(input bit rst, clk,
-									input logic line, 
-									output logic strobe);
+module readStrobeGenerator(	input bit nRst, clk,
+							input logic line, 
+							output logic strobe);
 	parameter period = 49;
 	parameter start = 25;
 	
@@ -89,13 +89,13 @@ module readStrobeGenerator(input bit rst, clk,
 	
 	assign strobe = (cntr == 0);
 
-	signalChange schange(rst, clk, line, changeStrobe);
+	signalChange schange(nRst, clk, line, changeStrobe);
 	
 	always_ff @ (posedge clk)
 		cntr <= nextCntr;		
 		
 	always_comb begin
-		if(rst | changeStrobe)	nextCntr = start;
+		if(!nRst | changeStrobe)	nextCntr = start;
 		else if(cntr == period)	nextCntr = 0;
 		else							nextCntr = cntr + 1;
 	end		

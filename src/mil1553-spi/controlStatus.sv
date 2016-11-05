@@ -13,7 +13,7 @@ interface IStatusInfoControl();
                  input  statusSize);
 endinterface
 
-module StatusInfo(input bit rst, clk,
+module StatusInfo(input bit nRst, clk,
 						      IPop.slave			 out,
 						      IStatusInfoControl.slave control);
 	
@@ -22,7 +22,7 @@ module StatusInfo(input bit rst, clk,
 	enum logic [2:0] {IDLE, SW0_L, SW0_S, SW1_L, SW1_S } Next, State;
 	
 	always_ff @ (posedge clk)
-		if(rst | !control.enable)
+		if(!nRst | !control.enable)
 			State <= IDLE;
 		else
 			State <= Next;

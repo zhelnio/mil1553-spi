@@ -3,7 +3,7 @@
 `ifndef SPI_CORE_INCLUDE
 `define SPI_CORE_INCLUDE
 
-module spiCore(input  bit rst, clk, spiClk,
+module spiCore(input  bit nRst, clk, spiClk,
 					input  logic[`DATAW_TOP:0] tData,
 					output logic[`DATAW_TOP:0] rData,
 					input  logic nCS, iPin,
@@ -15,15 +15,15 @@ module spiCore(input  bit rst, clk, spiClk,
 
 	enum logic[2:0] {IDLE = 3'h1, LOAD = 3'h2, TRANSMIT = 3'h3, READ = 3'h4, SAVE = 3'h5} State, Next;
 	
-	upFront		upStrobe(rst, clk, spiClk, clkUp);
-	downFront	downStrobe(rst, clk, spiClk, clkDown);
-	inputFilter	iFilter(rst, clk, iPin, _iPin);
+	upFront		upStrobe(nRst, clk, spiClk, clkUp);
+	downFront	downStrobe(nRst, clk, spiClk, clkDown);
+	inputFilter	iFilter(nRst, clk, iPin, _iPin);
 	
 	assign oPin = (State != IDLE) ? tBuffer[`DATAW_TOP] : 1'bz;
 	assign tFinish = (clkDown && State == SAVE);
 
 	always_ff @ (posedge clk)
-		if(rst | nCS)
+		if(!nRst | nCS)
 			State <= IDLE;
 		else
 			State <= Next;
@@ -59,7 +59,7 @@ module spiCore(input  bit rst, clk, spiClk,
 endmodule
 
 
-module spiMaster(	input  bit rst, clk, spiClk,
+module spiMaster(	input  bit nRst, clk, spiClk,
 						input  logic[`DATAW_TOP:0] tData, input logic requestInsertToTQueue, output logic doneInsertToTQueue,
 						output logic[`DATAW_TOP:0] rData, output logic requestReceivedToRQueue, input logic doneSavedFromRQueue,
 						output logic overflowInTQueue, overflowInRQueue,
@@ -76,10 +76,10 @@ module spiMaster(	input  bit rst, clk, spiClk,
 	assign overflowInRQueue = _wordInReceiveQueue & requestReceivedToRQueue;
 	assign doneInsertToTQueue = (_wordInTransmitQueue) ? _doneInsertToTQueue : 1'b0;
 	
-	upFront		upStrobe(rst, clk, spiClk, clkUp);
+	upFront		upStrobe(nRst, clk, spiClk, clkUp);
 	
 	always_ff @ (posedge clk) begin
-		if(rst) begin
+		if(!nRst) begin
 			{_wordInTransmitQueue, _wordInReceiveQueue} <= '0;
 			_nCS <= 1;
 			end
@@ -101,13 +101,13 @@ module spiMaster(	input  bit rst, clk, spiClk,
 		end
 	end
 	
-	spiCore	spi( .rst(rst), .clk(clk), .spiClk(spiClk), 
+	spiCore	spi( .nRst(nRst), .clk(clk), .spiClk(spiClk), 
 	             .tData(tData), .rData(rData), .nCS(_nCS), .iPin(miso), 
 					     .tDone(_doneInsertToTQueue), .rDone(requestReceivedToRQueue), 
 					     .oPin(mosi), .tFinish(_transmissionFinished));
 endmodule
 
-module spiSlave (input  bit rst, clk, 
+module spiSlave (input  bit nRst, clk, 
 					  input  logic[`DATAW_TOP:0] tData, input logic requestInsertToTQueue, output logic doneInsertToTQueue,
 					  output logic[`DATAW_TOP:0] rData, output logic requestReceivedToRQueue, input logic doneSavedFromRQueue,
 					  output logic overflowInTQueue, overflowInRQueue, isBusy,
@@ -126,7 +126,7 @@ module spiSlave (input  bit rst, clk,
 	assign isBusy = !nCS;
 		
 	always_ff @ (posedge clk) begin
-		if(rst)
+		if(!nRst)
 			{_wordInTransmitQueue, _wordInReceiveQueue} <= '0;
 		else begin
 			if(requestInsertToTQueue)
@@ -141,7 +141,7 @@ module spiSlave (input  bit rst, clk,
 		end
 	end
 	
-	spiCore	spi( .rst(rst), .clk(clk), .spiClk(sck), 
+	spiCore	spi( .nRst(nRst), .clk(clk), .spiClk(sck), 
 	             .tData(_tData), .rData(rData), .nCS(nCS), .iPin(mosi), 
 					     .tDone(_doneInsertToTQueue), .rDone(requestReceivedToRQueue), 
 					     .oPin(miso), .tFinish(_transmitFinished));

@@ -9,7 +9,7 @@
 `define ESC_WDATA		16'hFFA3
 `define ESC_MASK		(14'hFFA << 2)
 
-module milMemEncoder(input bit rst, clk,
+module milMemEncoder(input bit nRst, clk,
 							IPushMil.slave mil,
 							IPush.master push);
 	
@@ -24,7 +24,7 @@ module milMemEncoder(input bit rst, clk,
 	assign mil.done = (State == REPORT);
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			State = IDLE;
 		else 
 			State = Next;
@@ -68,7 +68,7 @@ module milMemEncoder(input bit rst, clk,
 endmodule
 
 
-module memMilEncoder(input bit rst, clk,
+module memMilEncoder(input bit nRst, clk,
 							IPushMil.master mil,
 							IPush.slave push);
 	
@@ -82,7 +82,7 @@ module memMilEncoder(input bit rst, clk,
 	assign push.done = (State == WORD1_DONE || State == WORD2_DONE);
 	
 	always_ff @ (posedge clk)
-		if(rst)
+		if(!nRst)
 			State = IDLE;
 		else 
 			State = Next;

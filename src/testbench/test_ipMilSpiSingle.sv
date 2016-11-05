@@ -4,7 +4,7 @@ module test_IpMilSpiSingle();
 	
 	import milStd1553::*;
 	
-	bit rst, clk;
+	bit nRst, clk;
 	ISpi     spi();
 	IMilStd  mil();
 	IMemory  mem();
@@ -15,12 +15,12 @@ module test_IpMilSpiSingle();
 	//debug spi transmitter
 	IPush        		spiPush();
 	IPushHelper 		spiDebug(clk, spiPush);
-	DebugSpiTransmitter	spiTrans(rst, clk, spiPush, spi);
+	DebugSpiTransmitter	spiTrans(nRst, clk, spiPush, spi);
 	
 	//debug mil tranceiver
 	IPushMil         	milPush();
 	IPushMilHelper 	 	milDebug(clk, milPush);
-	DebugMilTransmitter milTrans(rst, clk, milPush, mil);
+	DebugMilTransmitter milTrans(nRst, clk, milPush, mil);
 	
 	//DUT modules
 	defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR 	= 8'hAB;
@@ -29,16 +29,16 @@ module test_IpMilSpiSingle();
   	defparam milSpi.memoryBlock.RING2_MEM_START	= 16'h80;
   	defparam milSpi.memoryBlock.RING2_MEM_END	= 16'hFF;
 
-	IpMilSpiSingle milSpi(.clk(clk), .rst(rst),
+	IpMilSpiSingle milSpi(.clk(clk), .nRst(nRst),
 	                      .spi(spi), .mil(mil),
 	                      .mbus(mem));
 	                      
-	AlteraMemoryWrapper memory(.clk(clk), .rst(rst), 
+	AlteraMemoryWrapper memory(.clk(clk), .nRst(nRst), 
 	                           .memBus(mem));
 	initial begin
 	
-		rst = 1;
-	#20 rst = 0;
+		nRst = 0;
+	#20 nRst = 1;
 
 			//send some random data to Mil
 			begin

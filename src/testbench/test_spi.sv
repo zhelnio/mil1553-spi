@@ -3,15 +3,15 @@
 `include "settings.sv"
 
 module test_spiCore();
-	bit rst, clk, ioClk; 
+	bit nRst, clk, ioClk; 
 	logic[`DATAW_TOP:0] tData1, rData1, tData2, rData2;
 	logic nCS, tFinish1, tFinish2, iPin, oPin;
 	logic tDone1, rDone1, tDone2, rDone2;
 	
-	spiCore spi1(.rst(rst), .clk(clk), .spiClk(ioClk), .tData(tData1), 
+	spiCore spi1(.nRst(nRst), .clk(clk), .spiClk(ioClk), .tData(tData1), 
 	             .rData(rData1), .nCS(nCS), .iPin(iPin), .tDone(tDone1), 
 	             .rDone(rDone1), .oPin(oPin), .tFinish(tFinish1));
-	spiCore spi2(.rst(rst), .clk(clk), .spiClk(ioClk), .tData(tData2), 
+	spiCore spi2(.nRst(nRst), .clk(clk), .spiClk(ioClk), .tData(tData2), 
 	             .rData(rData2), .nCS(nCS), .iPin(oPin), .tDone(tDone2), 
 	             .rDone(rDone2), .oPin(iPin), .tFinish(tFinish2));
 	
@@ -54,19 +54,19 @@ endmodule
 
 
 module test_spiMaster();
-	bit rst, clk, ioClk; 
+	bit nRst, clk, ioClk; 
 	logic[`DATAW_TOP:0] tData1, rData1, tData2, rData2;
 	logic nCS, tFinish1, tFinish2, iPin, oPin;
 	logic tDone1, rDone1, tDone2, rDone2;
 	logic transmitRequest, rDataWriteRequest, tOverflow, rOverflow, rDataWriteDone, sck;
 
-	spiMaster spiM(.rst(rst), .clk(clk), .spiClk(ioClk), 
+	spiMaster spiM(.nRst(nRst), .clk(clk), .spiClk(ioClk), 
 						.tData(tData1), .requestInsertToTQueue(transmitRequest), .doneInsertToTQueue(tDone1), 
 						.rData(rData1), .requestReceivedToRQueue(rDataWriteRequest), .doneSavedFromRQueue(rDataWriteDone), 
 						.overflowInTQueue(tOverflow), .overflowInRQueue(rOverflow), 
 						.miso(iPin), .mosi(oPin), .nCS(nCS), .sck(sck));
 						
-	spiCore spiC(.rst(rst), .clk(clk), .spiClk(sck), .tData(tData2), 
+	spiCore spiC(.nRst(nRst), .clk(clk), .spiClk(sck), .tData(tData2), 
 	             .rData(rData2), .nCS(nCS), .iPin(oPin), .tDone(tDone2), 
 	             .rDone(rDone2), .oPin(iPin), .tFinish(tFinish2));
 	
@@ -76,9 +76,9 @@ module test_spiMaster();
 	   tData2 = 16'h1234;
 	   transmitRequest = 1;
 	   rDataWriteDone = 0;
-	   rst = 1;
+	   nRst = 0;
 	
-     #2 rst = 0;
+     #2 nRst = 1;
      #2 transmitRequest = 0;
 
      #300 $stop;
@@ -96,7 +96,7 @@ endmodule
 
 
 module test_spiSlave();
-	bit rst, clk, ioClk; 
+	bit nRst, clk, ioClk; 
 	logic[`DATAW_TOP:0] tData1, rData1, tData2, rData2;
 	logic requestInsertToTQueue1, doneInsertToTQueue1, requestReceivedToRQueue1, doneSavedFromRQueue1, 
 			overflowInTQueue1, overflowInRQueue1;
@@ -104,13 +104,13 @@ module test_spiSlave();
 			overflowInTQueue2, overflowInRQueue2, isBusy;
 	logic oPin, iPin, nCS, sck;
 	
-	spiMaster spiM(.rst(rst), .clk(clk), .spiClk(ioClk), 
+	spiMaster spiM(.nRst(nRst), .clk(clk), .spiClk(ioClk), 
 						.tData(tData1), .requestInsertToTQueue(requestInsertToTQueue1), .doneInsertToTQueue(doneInsertToTQueue1), 
 						.rData(rData1), .requestReceivedToRQueue(requestReceivedToRQueue1), .doneSavedFromRQueue(doneSavedFromRQueue1), 
 						.overflowInTQueue(overflowInTQueue1), .overflowInRQueue(overflowInRQueue1), 
 						.miso(iPin), .mosi(oPin), .nCS(nCS), .sck(sck));
 	
-	spiSlave spiS(.rst(rst), .clk(clk),
+	spiSlave spiS(.nRst(nRst), .clk(clk),
 						.tData(tData2), .requestInsertToTQueue(requestInsertToTQueue2), .doneInsertToTQueue(doneInsertToTQueue2),
 						.rData(rData2), .requestReceivedToRQueue(requestReceivedToRQueue2), .doneSavedFromRQueue(doneSavedFromRQueue2), 
 						.overflowInTQueue(overflowInTQueue2), .overflowInRQueue(overflowInRQueue2), .isBusy(isBusy),
@@ -121,9 +121,9 @@ module test_spiSlave();
 	   tData1 = 16'hABCD;
 	   tData2 = 16'h1234;
 	   requestInsertToTQueue1 = 1; requestInsertToTQueue2 = 1;
-	   rst = 1;
+	   nRst = 0;
 	
-    #2 rst = 0;
+    #2 nRst = 1;
     #2 requestInsertToTQueue1 = 0; requestInsertToTQueue2 = 0;
     
     #300 $stop;

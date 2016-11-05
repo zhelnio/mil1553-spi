@@ -11,7 +11,7 @@ interface IServiceProtocolEControl();
 	modport master(output addr, size, cmdCode, enable);
 endinterface
 
-module ServiceProtocolEncoder(input bit rst, clk,
+module ServiceProtocolEncoder(input bit nRst, clk,
 										IPop.master 	data,
 										IPush.master 	packet,
 										IServiceProtocolEControl.slave control);
@@ -31,13 +31,13 @@ module ServiceProtocolEncoder(input bit rst, clk,
 	ServiceProtocolHeaderPart headerPart;
 	
 	always_ff @ (posedge clk)
-	if(rst)
+	if(!nRst)
 		State <= WAIT;
 	else
 		State <= Next;
 
 	always_ff @ (posedge clk) begin
-		if(rst)
+		if(!nRst)
 			num <= 0;
 	
 		if(Next == PACKET_HEAD1_L) begin

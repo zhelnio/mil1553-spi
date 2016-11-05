@@ -2,13 +2,13 @@
 `define CONTROLBUS_INCLUDE
 
 //get from IPop and push to IPush
-module BusPusher(	input bit rst, clk,
+module BusPusher(	input bit nRst, clk,
 						input logic enable,
 						IPush.master push,
 						IPop.master pop);
 		
 		logic beginEnabled;
-		upFront beginEnabledStrobe(rst, clk, enable, beginEnabled);
+		upFront beginEnabledStrobe (nRst, clk, enable, beginEnabled);
 		
 		enum logic [2:0] {IDLE, READ_REQ, READ_WAIT, WRITE_REQ, WRITE_WAIT } State, Next;
 		
@@ -17,7 +17,7 @@ module BusPusher(	input bit rst, clk,
 		assign pop.request	= (State == READ_REQ);
 		
 		always_ff @ (posedge clk)
-			if(rst)
+			if (!nRst)
 				State <= IDLE;
 			else
 				State <= Next;
@@ -35,7 +35,7 @@ module BusPusher(	input bit rst, clk,
 		end
 endmodule	
 
-module BusMux( input bit rst, clk,
+module BusMux( input bit nRst, clk,
 					input logic	[1:0] key,
 					IPop.slave	out,
 					IPop.master	in0,
@@ -59,7 +59,7 @@ module BusMux( input bit rst, clk,
 	end
 endmodule	
 
-module BusMux2( input bit rst, clk,
+module BusMux2( input bit nRst, clk,
 				input logic	[2:0] key,
 				IPop.slave	out,
 				IPop.master	in0,
@@ -93,7 +93,7 @@ module BusMux2( input bit rst, clk,
 	end
 endmodule	
 
-module PushMux( input bit rst, clk,
+module PushMux( input bit nRst, clk,
 				input logic	[1:0] key,
 				IPush.slave in,
 				IPush.master out0,
@@ -117,7 +117,7 @@ module PushMux( input bit rst, clk,
 	end
 endmodule			
 
-module BusGate(input bit rst, clk,
+module BusGate(input bit nRst, clk,
 					input logic 	enable,
 					IPush.slave		in,
 					IPush.master 	out);

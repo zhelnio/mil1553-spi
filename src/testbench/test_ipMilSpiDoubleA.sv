@@ -4,7 +4,7 @@ module test_IpMilSpiDoubleA();
 	
 	import milStd1553::*;
 	
-	bit rst, clk;
+	bit nRst, clk;
 	ISpi     spi0();	
 	ISpi     spi1();	
 	IMilStd  mil();
@@ -16,16 +16,16 @@ module test_IpMilSpiDoubleA();
 	//debug spi transmitter
 	IPush        		spiPush0();
 	IPushHelper 		spiDebug0(clk, spiPush0);
-	DebugSpiTransmitter	spiTrans0(rst, clk, spiPush0, spi0);
+	DebugSpiTransmitter	spiTrans0(nRst, clk, spiPush0, spi0);
 
 	IPush        		spiPush1();
 	IPushHelper 		spiDebug1(clk, spiPush1);
-	DebugSpiTransmitter	spiTrans1(rst, clk, spiPush1, spi1);
+	DebugSpiTransmitter	spiTrans1(nRst, clk, spiPush1, spi1);
 	
 	//debug mil tranceiver
 	IPushMil         	milPush();
 	IPushMilHelper 	 	milDebug(clk, milPush);
-	DebugMilTransmitter milTrans(rst, clk, milPush, mil);
+	DebugMilTransmitter milTrans(nRst, clk, milPush, mil);
 	
 	//DUT modules
 	defparam milSpi.milSpiBlock0.SPI_BLOCK_ADDR 	= 8'hAB;
@@ -40,17 +40,17 @@ module test_IpMilSpiDoubleA();
 	defparam milSpi.memoryBlock.RING2_3_MEM_START	= 16'hC0;
 	defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFF;
 
-	IpMilSpiDoubleA milSpi(.clk(clk), .rst(rst),
+	IpMilSpiDoubleA milSpi(.clk(clk), .nRst(nRst),
 	                      .spi0(spi0), .spi1(spi1), 
 						  .mil0(mil), .mil1(mil),
 	                      .mbus(mem));
 	                      
-	AlteraMemoryWrapper memory(.clk(clk), .rst(rst), 
+	AlteraMemoryWrapper memory(.clk(clk), .nRst(nRst), 
 	                           .memBus(mem));
 	initial begin
 	
-		rst = 1;
-	#20 rst = 0;
+		nRst = 0;
+	#20 nRst = 1;
 		
 			//send data to spi Mil
 			begin

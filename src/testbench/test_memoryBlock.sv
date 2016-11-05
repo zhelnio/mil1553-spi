@@ -1,7 +1,7 @@
 `timescale 10 ns/ 1 ns
 
 module test_memoryBlock();
-	bit rst, clk;
+	bit nRst, clk;
 	
 	IMemory mbus();
 	IRingBufferControl rcontrol0();
@@ -11,8 +11,8 @@ module test_memoryBlock();
 	IPop	pop0();
 	IPop	pop1();
 	
-	AlteraMemoryWrapper mem(rst, clk, mbus.memory);
-	MemoryBlock			  memBlock(rst, clk, 
+	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryBlock			  memBlock(nRst, clk, 
 	                         push0, push1, 
 	                         pop0, pop1, 
 	                         rcontrol0, rcontrol1, mbus);
@@ -24,10 +24,10 @@ module test_memoryBlock();
 	IPopHelper  popHelperB(clk, pop1);
 	
 	initial begin
-    clk = '1;	rst = '1;
+    clk = '1;	nRst = '0;
     {rcontrol0.open, rcontrol0.commit, rcontrol0.rollback} = '0;
     {rcontrol1.open, rcontrol1.commit, rcontrol1.rollback} = '0;
-    #2	rst = '0;
+    #2	nRst = '1;
 	
     fork
       begin
