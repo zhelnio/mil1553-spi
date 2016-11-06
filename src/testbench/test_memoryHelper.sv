@@ -6,11 +6,11 @@
 
 `timescale 10 ns/ 1 ns
 
-module test_alteraMemoryWrapper();
+module test_memoryHelper();
 	bit nRst, clk;
 	
 	IMemory membus();
-	AlteraMemoryWrapper mem(nRst, clk, membus.memory);
+	MemoryHelper mem(nRst, clk, membus.memory);
 
   initial begin
 		  clk = '1;	nRst = '0;

@@ -14,7 +14,7 @@ module test_arbiter();
 	IMemoryWriter wBus();
 	IArbiter abus[3:0]();
 
-	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryHelper 	mem(nRst, clk, mbus.memory);
 	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
 	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
 	Arbiter			arbiter(nRst, clk, abus);

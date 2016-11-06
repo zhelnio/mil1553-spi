@@ -251,6 +251,6 @@ IpMilSpiDoubleB milSpi(	.clk(clk100), .nRst(BUTTON[0]),
 						.mbus(mem));
 							 
 AlteraMemoryWrapper memory(	.clk(clk100), .nRst(BUTTON[0]), 
-							.memBus(mem));
+							.mem(mem));
 
 endmodule

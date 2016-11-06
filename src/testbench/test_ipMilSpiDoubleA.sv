@@ -54,8 +54,8 @@ module test_IpMilSpiDoubleA();
 						  .mil0(mil0), .mil1(mil1),
 	                      .mbus(mem));
 	                      
-	AlteraMemoryWrapper memory(.clk(clk), .nRst(nRst), 
-	                           .memBus(mem));
+	MemoryHelper 	memory(.clk(clk), .nRst(nRst), 
+	                    	.mem(mem.memory));
 	initial begin
 	
 		nRst = 0;

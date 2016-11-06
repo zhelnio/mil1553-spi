@@ -17,10 +17,10 @@ interface IMilControl();
 endinterface
 
 module milTransceiver(	input bit nRst, clk,
-					             IPushMil.master rpush,
-					 	           IPushMil.slave tpush,
-					             IMilStd mil,
-					             IMilControl.slave control);
+						IPushMil.master rpush,
+						IPushMil.slave tpush,
+						IMilStd mil,
+						IMilControl.slave control);
 	
 	parameter T2R_DELAY = 12;
 	
@@ -76,8 +76,9 @@ module milTransceiver(	input bit nRst, clk,
 
 endmodule	
 
-module ioClkGenerator(input bit nRst, clk, 
-							 output logic ioClk);
+module ioClkGenerator(	input bit nRst, clk, 
+						output logic ioClk);
+						
 	parameter period = 49;
 	logic [5:0] cntr, nextCntr;
 	

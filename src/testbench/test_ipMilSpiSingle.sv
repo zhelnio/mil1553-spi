@@ -40,8 +40,8 @@ module test_IpMilSpiSingle();
 	                      .spi(spi), .mil(mil1),
 	                      .mbus(mem));
 	                      
-	AlteraMemoryWrapper memory(.clk(clk), .nRst(nRst), 
-	                           .memBus(mem));
+	MemoryHelper 	memory(.clk(clk), .nRst(nRst), 
+	                           .mem(mem));
 	initial begin
 	
 		nRst = 0;

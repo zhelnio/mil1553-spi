@@ -17,7 +17,7 @@ module test_ringBuffer();
 	IPush	push();
 	IPop	pop();
 
-	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryHelper  mem(nRst, clk, mbus.memory);
 	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
 	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
 	Arbiter			arbiter(nRst, clk, abus);
@@ -67,7 +67,7 @@ module test_ringBufferOverflow();
 	IPush	push();
 	IPop	pop();
 
-	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryHelper  mem(nRst, clk, mbus.memory);
 	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
 	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
 	Arbiter			arbiter(nRst, clk, abus);
@@ -122,7 +122,7 @@ module test_ringBufferConcurentOverflow();
 	IPop	pop[1:0]();
 
 	Arbiter			arbiter(nRst, clk, abus);
-	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
+	MemoryHelper  mem(nRst, clk, mbus.memory);
 	MemoryWriter	writerA(nRst, clk, mbus.writer, wbus[0].slave, abus[0].client);
 	MemoryWriter	writerB(nRst, clk, mbus.writer, wbus[1].slave, abus[1].client);
 	MemoryReader	readerA(nRst, clk, mbus.reader, rbus[0].slave, abus[2].client);

@@ -17,8 +17,8 @@ module test_memoryBlock();
 	IPop	pop0();
 	IPop	pop1();
 	
-	AlteraMemoryWrapper mem(nRst, clk, mbus.memory);
-	MemoryBlock			  memBlock(nRst, clk, 
+	MemoryHelper	mem(nRst, clk, mbus.memory);
+	MemoryBlock		smemBlock(nRst, clk, 
 	                         push0, push1, 
 	                         pop0, pop1, 
 	                         rcontrol0, rcontrol1, mbus);

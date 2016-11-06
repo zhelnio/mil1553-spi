@@ -1,6 +1,5 @@
 ## ignore questasim/modelsim files
 
-software/
 
 # Build results
 work/
@@ -20,8 +19,8 @@ work/
 quartus/
 *.vstf
 src/altera/greybox_tmp/
-src/board_DE0/db
-src/board_DE0/incremental_db
+src/board/DE0/db
+src/board/DE0/incremental_db
 *.txt
 *.summary
 *.smsg
@@ -33,3 +32,4 @@ src/board_DE0/incremental_db
 *.ddb
 *stp
 transcript
+*.cdf
