@@ -1,5 +1,6 @@
 ## ignore questasim/modelsim files
 
+src/board/DE0_tests/MilLight
 
 # Build results
 work/
