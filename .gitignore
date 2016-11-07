@@ -34,3 +34,4 @@ src/board/DE0/incremental_db
 *stp
 transcript
 *.cdf
+*.qws
