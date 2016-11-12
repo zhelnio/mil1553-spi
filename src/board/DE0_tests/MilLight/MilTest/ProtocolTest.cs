@@ -35,7 +35,6 @@ namespace MilTest
             return p;
         }
 
-
         [TestMethod]
         public void EncodeTest()
         {

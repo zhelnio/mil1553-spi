@@ -28,18 +28,20 @@ namespace MilLight
             if(inProgress)
                 return;
 
-            inProgress = true;
+            try
+            {
+                inProgress = true;
 
-            if (IsActual)
+                if (IsActual)
+                    return;
+
+                Actualization();
+                isActual = true;
+            }
+            finally
             {
                 inProgress = false;
-                return;
             }
-
-            Actualization();
-            isActual = true;
-
-            inProgress = false;
         }
 
         protected virtual void Actualization() { }
