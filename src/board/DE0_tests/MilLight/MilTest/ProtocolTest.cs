@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.IO;
+using MilLight;
 
 namespace MilTest
 {
@@ -23,7 +24,7 @@ namespace MilTest
             {
                 Addr = 0xAB,
                 Command = SPCommand.Send,
-                Data = new List<MilPacket>()
+                Data = new List<IMilPacket>()
                 {
                     new MilPacket() { Data = 0x0001, Header = MilType.WSERV },
                     new MilPacket() { Data = 0x0002 },

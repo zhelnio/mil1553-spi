@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="MilLight.MilPacketData" Collapsed="true">
+    <Position X="6" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAQAAABAgAAAAIAAAgAAAAIAABAAEAAQAAAAAAA=</HashCode>
+      <FileName>MilLight\MilPacketData.cs</FileName>
+      <NewMemberFileName>MilLight.cs</NewMemberFileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilLight.ExpirableObject" Collapsed="true">
+    <Position X="5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EACAAAAAEABAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ExpirableObject.cs</FileName>
+      <NewMemberFileName>MilLight.cs</NewMemberFileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilLight.StreamExtensions" Collapsed="true">
+    <Position X="8.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>MilLight\StreamExtensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilLight.MilPacket" Collapsed="true">
+    <Position X="6" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\MilPacket.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilLight.SPPacketData" Collapsed="true">
+    <Position X="3.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAhAEBAIABAABgAAAAYAABAAIAAQAAAAAAA=</HashCode>
+      <FileName>MilLight\SPPacketData.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilLight.SPPacket" Collapsed="true">
+    <Position X="3.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\SPPacket.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="MilLight.IMilPacket" Collapsed="true">
+    <Position X="10.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAgAAAAAAAAgAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilLight.ISPPacket" Collapsed="true">
+    <Position X="8.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAEAAAAAAABgAAAAAAABAAIAAAAAAAAAA=</HashCode>
+      <FileName>MilLight.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilLight.IBinarySerializable" Collapsed="true">
+    <Position X="8.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="MilLight.SPCommand" Collapsed="true">
+    <Position X="10.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAABAAAAEAAAAAAAAAAAAAQAAAAAAAAABA=</HashCode>
+      <FileName>MilLight.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MilLight.MilType" Collapsed="true">
+    <Position X="8.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAEABAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>MilLight.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
