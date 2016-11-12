@@ -3,143 +3,301 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Runtime.InteropServices;
 
 namespace MilTest
 {
-    class ServiceProtocol
+    public enum SPCommand : byte
     {
-        public class SPCommand
+        Unknown = 0xFF,
+        Reset = 0xA0,
+        Send = 0xA2,
+        Status = 0xB0,
+        Receive = 0xB2
+    }
+
+    public enum MilType : UInt16
+    {
+        WSERVERR = 0xFFA0,
+        WSERV = 0xFFA1,
+        WDATAERR = 0xFFA2,
+        WDATA = 0xFFA3
+    }
+
+
+
+    public interface IBinaryTransferable
+    {
+        UInt16 CheckSum { get; }
+        UInt16 Size { get; }
+    }
+
+    public interface IBinarySerializable
+    {
+        UInt16 Serialize(Stream stream);
+        UInt16 Deserialize(Stream stream);
+    }
+
+    public class MilPacket : IBinarySerializable, IBinaryTransferable
+    {
+        private MilType header = MilType.WDATA;
+        public MilType Header
         {
-            public const byte Unknown = 0xFF;    // no reaction command
-            public const byte Reset = 0xA0;      // device reset
-            public const byte Send = 0xA2;       // send data to mil
-            public const byte Status = 0xB0;     // get status info
-            public const byte Receive = 0xB2;    // get all the data received from mil
-
-            public byte Value { get; set; }
-
-            public SPCommand(byte command)
+            get
             {
-                Value = getCommand(command);
+                Actualize();
+                return header;
             }
-
-            public SPCommand()
+            set
             {
-                Value = Unknown;
-            }
-
-            protected virtual byte getCommand(byte command)
-            {
-                switch (command)
-                {
-                    default: return Unknown;
-                    case Reset: return Reset;
-                    case Send: return Send;
-                    case Status: return Status;
-                    case Receive: return Receive;
-                }
-            }
-
-            public static implicit operator byte(SPCommand obj)
-            {
-                return obj.Value;
-            }
-
-            public static implicit operator SPCommand(byte obj)
-            {
-                return new SPCommand(obj);
+                isActual = false;
+                header = value;
             }
         }
 
-        public class MilType
+        private UInt16 data;
+        public UInt16 Data
         {
-            public const ushort WSERVERR = 0xFFA0;
-            public const ushort WSERV = 0xFFA1;
-            public const ushort WDATAERR = 0xFFA2;
-            public const ushort WDATA = 0xFFA3;
-
-            private ushort val;
-            public ushort Value
+            get
             {
-                get { return val; }
-                set
-                {
-                    checkNewValue(value);
-                    val = value;
-                }
+                Actualize();
+                return data;
             }
-
-            protected virtual void checkNewValue(ushort val)
+            set
             {
-                if (val < 0xFFA0 || val > 0xFFA3)
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            public MilType()
-            {
-                Value = WDATA;
-            }
-
-            public static implicit operator ushort(MilType d)
-            {
-                return d.Value;
-            }
-
-            public static implicit operator MilType(ushort d)
-            {
-                return new MilType() { Value = d };
+                data = value;
+                isActual = false;
             }
         }
 
-        public class MilPacket
-        {        
-            public MilType PType { get; set; }
-            public UInt16 PData { get; set; }
-
-            public MilPacket()
+        private UInt16 size;
+        public UInt16 Size
+        {
+            get
             {
-                PType = MilType.WDATA;
+                Actualize();
+                return size;
             }
         }
 
-        public class SPPacket
+        private UInt16 checkSum;
+        public UInt16 CheckSum
         {
-            public byte Addr { get; set; }
-            public SPCommand Command { get; set; }
-            public ushort WordNum { get; set; }
-            public MilPacket[] Data { get; set; }
-            
-            public SPPacket()
+            get
             {
-                Addr = 0;
-                Command = new SPCommand();
-                WordNum = 0;
+                Actualize();
+                return checkSum;
+            }
+        }
+
+        private bool isActual = false;
+        public bool IsActual
+        {
+            get { return isActual; }
+        }
+
+        private void Actualize()
+        {
+            if (isActual)
+                return;
+
+            if(needToTransferHeader())
+            {
+                size = 2;
+                checkSum = (UInt16)((UInt16)header + data);
+            }
+            else
+            {
+                size = 1;
+                checkSum = data;
             }
 
-            public byte[] RawData { get; set; }
-            public byte[] RawPacket { get; }
-            public UInt16 Size { get; }
-            public UInt16 CheckSum { get; }
+            isActual = true;
+        }
 
-            protected virtual byte[] encodeData()
+        private bool needToTransferHeader()
+        {
+            return header != MilType.WDATA ||
+                    data == (UInt16)MilType.WSERVERR || data == (UInt16)MilType.WSERV ||
+                    data == (UInt16)MilType.WDATAERR || data == (UInt16)MilType.WDATA;
+        }
+
+
+        public UInt16 Serialize(Stream stream)
+        {
+            if (needToTransferHeader())
             {
-
+                stream.WriteUInt16((UInt16)Header);
+                stream.WriteUInt16(Data);
+                return 2;
             }
 
-            protected virtual byte[] encodeMilPacket(MilPacket p)
-            {
-                if (p.PType != MilType.WDATA ||
-                    p.PData == MilType.WDATAERR ||
-                    p.PData == MilType.WSERV ||
-                    p.PData == MilType.WSERVERR)
-                    return new byte[] { (byte)(p.PType >> 8),
-                                        (byte)(p.PType & 0xFF),
-                                        (byte)(p.PData >> 8),
-                                        (byte)(p.PData & 0xFF) };
+            stream.WriteUInt16(Data);
+            return 1;
+        }
 
-                return new byte[] { (byte)(p.PData >> 8),
-                                    (byte)(p.PData & 0xFF) };
+        public UInt16 Deserialize(Stream stream)
+        {
+            UInt16 value = stream.ReadUInt16();
+            if(value == (UInt16)MilType.WSERVERR || value == (UInt16)MilType.WSERV ||
+               value == (UInt16)MilType.WDATAERR || value == (UInt16)MilType.WDATA)
+            {
+                Header = (MilType)value;
+                Data = stream.ReadUInt16();
+                return 2;
             }
+            Header = MilType.WDATA;
+            Data = value;
+            return 1;
+        }
+    }
+
+    public static class StreamExtensions
+    {
+        public static void WriteUInt16(this Stream stream, UInt16 value)
+        {
+            stream.WriteByte((byte)(value >> 8));
+            stream.WriteByte((byte)(value & 0xFF));
+        }
+
+        public static UInt16 ReadUInt16(this Stream stream)
+        {
+            UInt16 result;
+            byte[] buffer = new byte[2];
+
+            stream.Read(buffer, 0, 2);
+
+            result = (UInt16)(buffer[0] << 8);
+            result += buffer[1];
+
+            return result;
+        }
+    }
+
+    public class SPPacket : IBinarySerializable
+    {
+        private bool isActual = false;
+        public bool IsActual
+        {
+            get { return isActual && !Data.Exists(a => !a.IsActual); }
+        }
+
+        private byte addr;
+        public byte Addr
+        {
+            get
+            {
+                Actualize();
+                return addr;
+            }
+            set
+            {
+                addr = value;
+                isActual = false;
+            }
+        }
+
+        private byte command;
+        public SPCommand Command
+        {
+            get
+            {
+                Actualize();
+                return (SPCommand)command;
+            }
+            set
+            {
+                command = (byte)value;
+                isActual = false;
+            }
+        }
+
+        private List<MilPacket> data = new List<MilPacket>();
+        public List<MilPacket> Data
+        {
+            get
+            {
+                Actualize();
+                return data;
+            }
+            set
+            {
+                data = value;
+                isActual = false;
+            }
+        }
+
+        public UInt16 PackNum { get; set; }
+
+        private UInt16 dataSize;
+        public UInt16 DataSize
+        {
+            get
+            {
+                Actualize();
+                return dataSize;
+            }
+        }
+
+        private UInt16 checkSum;
+        public UInt16 CheckSum {
+            get
+            {
+                Actualize();
+                return checkSum;
+            }
+        }
+
+        private void Actualize()
+        {
+            if (isActual)
+                return;
+
+            dataSize = (UInt16)(data.Sum(a => a.Size));
+            checkSum  = (UInt16)((addr << 8) + (dataSize >> 8));
+            checkSum += (UInt16)((dataSize << 8) + ((byte)command));
+            checkSum += (UInt16)(data.Sum(a => a.CheckSum));
+
+            isActual = true;
+        }
+
+        public UInt16 Serialize(Stream stream)
+        {
+            UInt16 osize = 4;
+            stream.WriteByte(Addr);
+            stream.WriteUInt16(DataSize);
+            stream.WriteByte((byte)Command);
+            Data.ForEach(a => osize += a.Serialize(stream));
+            stream.WriteUInt16(CheckSum);
+            stream.WriteUInt16(PackNum);
+            return osize;
+        }
+
+        public UInt16 Deserialize(Stream stream)
+        {
+            do
+            {
+                int data = stream.ReadByte();
+                addr = (byte)data;
+            }
+            while (addr == 0);
+            int rCataSize = stream.ReadUInt16();
+            command = (byte)stream.ReadByte();
+
+            UInt16 osize = 4;
+            for (int i = 0; i < rCataSize;)
+            {
+                MilPacket mp = new MilPacket();
+                UInt16 s = mp.Deserialize(stream);
+                osize += s;
+                i += s;
+                data.Add(mp);
+            }
+            UInt16 rCheckSum = stream.ReadUInt16();
+            UInt16 rPackNum = stream.ReadUInt16();
+
+            return osize;
         }
     }
 
@@ -160,12 +318,7 @@ namespace MilTest
     spiDebug.doPush(16'hFFA3);   //экранирующий символ, следующие 16 бит д.б. отправлены как слово данных
     spiDebug.doPush(16'hFFA1);    //слово данных (4 слово, которое уходит в mil)
                 
-    spiDebug.doPush(16'h57CF); //контрольная сумма
+    spiDebug.doPush(16'h5BCF); //контрольная сумма
     spiDebug.doPush(16'h0);        //номер слова 
     */
-
-    class MilLight
-    {
-
-    }
 }
