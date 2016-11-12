@@ -87,5 +87,29 @@ namespace MilLight
             checkSum += (UInt16)((dataSize << 8) + ((byte)command));
             checkSum += (UInt16)(data.Sum(a => a.CheckSum));
         }
+
+        public override bool Equals(object obj)
+        {
+            SPPacketData o = obj as SPPacketData;
+            if (o == null)
+                return false;
+
+            return o.Addr == Addr
+                && o.CheckSum == CheckSum
+                && o.Command == Command
+                && o.DataSize == DataSize
+                && Enumerable.SequenceEqual(o.Data, Data);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 11;
+            hash = hash * 24 + Addr.GetHashCode();
+            hash = hash * 24 + CheckSum.GetHashCode();
+            hash = hash * 24 + Command.GetHashCode();
+            hash = hash * 24 + DataSize.GetHashCode();
+            hash = hash * 24 + Data.GetHashCode();
+            return hash;
+        }
     }
 }

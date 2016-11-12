@@ -81,5 +81,23 @@ namespace MilLight
                 checkSum = data;
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            MilPacketData o = obj as MilPacketData;
+            if (o == null)
+                return false;
+
+            return o.Header == Header
+                && o.Data == Data;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 35;
+            hash = hash * 28 + Header.GetHashCode();
+            hash = hash * 28 + Data.GetHashCode();
+            return hash;
+        }
     }
 }
