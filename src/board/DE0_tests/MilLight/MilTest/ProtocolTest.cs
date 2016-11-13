@@ -49,6 +49,26 @@ namespace MilTest
             Assert.IsTrue(r.IsValid);
         }
 
+        [TestMethod]
+        public void DelayTest()
+        {
+            SPFrame p = getPacket();
+
+            MemoryStream stream = new MemoryStream();
+            p.Serialize(stream);
+            byte[] data = stream.ToArray();
+
+            MemoryStream iStream = new MemoryStream(data);
+            SPFrame r = createPacket();
+            r.Deserialize(iStream);
+
+            bool s = r.Equals(p);
+
+            Assert.IsTrue(r.Equals(p));
+            Assert.IsTrue(r.IsActual);
+            Assert.IsTrue(r.IsValid);
+        }
+
         protected virtual SPFrame createPacket()
         {
             return new SPFrame();
