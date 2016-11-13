@@ -65,27 +65,17 @@ namespace MilLight
 
 
 
-    
 
 
-
-
-    /*
-    public interface IBridgeStatus
+    public interface IMilSpiBridge
     {
-        UInt16 TransmitQueueSize { get; }
-        UInt16 ReceivedQueueSize { get; }
-    }
-
-    public interface IMilServiceProtocol
-    {
-        List<IMilPacket> Receive(byte addr, int size);
-        void Transmit(byte addr, List<IMilPacket> data);
+        List<IMilFrame> Receive(byte addr, int size);
+        void Transmit(byte addr, List<IMilFrame> data);
         void DeviceReset(byte addr);
-        IBridgeStatus getDeviceStatus(byte addr);
+        ISPStatus getDeviceStatus(byte addr);
     }
 
-    public class MilSpiBridge : IMilServiceProtocol
+    public class MilSpiBridge : IMilSpiBridge
     {
         private string mpsseSerialNumber;
 
@@ -94,7 +84,7 @@ namespace MilLight
             this.mpsseSerialNumber = mpsseSerialNumber;
         }
 
-        protected byte[] encodePacket(SPPacket packet)
+        protected byte[] encodePacket(IBinaryFrame packet)
         {
             MemoryStream stream = new MemoryStream();
             packet.Serialize(stream);
@@ -119,45 +109,53 @@ namespace MilLight
             }
         }
 
-        protected void bridgeWrite(SPPacket packet)
-        {
-            byte[] data = encodePacket(packet);
-            spiWrite(data);
-        }
-
-        protected void bridgeReadWrite(SPPacket packet)
-        {
-
-        }
-
         public void DeviceReset(byte addr)
         {
-            SPPacket resetPacket = new SPPacket() { Addr = addr, Command = SPCommand.Reset };
-            byte[] data = encodePacket(resetPacket);
-
-            using (MpsseDevice mpsse = new FT2232D("A"))
-            {
-                SpiDevice spi = new SpiDevice(mpsse);
-                spi.write(data);
-            }
+            SPFrame resetPacket = new SPFrame() { Addr = addr, Command = SPCommand.Reset };
+            byte[] raw = encodePacket(resetPacket);
+            spiWrite(raw);
         }
 
-        public IBridgeStatus getDeviceStatus(byte addr)
+        public void Transmit(byte addr, List<IMilFrame> data)
         {
-            throw new NotImplementedException();
+            SPFrame transmitPacket = new SPData() { Addr = addr, Command = SPCommand.Send, Data = data };
+            byte[] raw = encodePacket(transmitPacket);
+            spiWrite(raw);
         }
 
-        public List<IMilPacket> Receive(byte addr, int size)
+        protected const int packetReceiveDelay = 5;
+
+        public ISPStatus getDeviceStatus(byte addr)
         {
-            throw new NotImplementedException();
+            SPData requestPacket = new SPData() { Addr = addr, Command = SPCommand.Status };
+            for (int i = 0; i < packetReceiveDelay; i++)
+                requestPacket.Data.Add(new MilFrame());
+            byte[] oraw = encodePacket(requestPacket);
+
+            byte[] iraw = spiReadWrite(oraw);
+
+            MemoryStream stream = new MemoryStream(iraw);
+            SPStatus responcePacket = new SPStatus();
+            responcePacket.Deserialize(stream);
+            return responcePacket;
         }
 
-        public void Transmit(byte addr, List<IMilPacket> data)
+        public List<IMilFrame> Receive(byte addr, int size)
         {
-            throw new NotImplementedException();
+            SPData requestPacket = new SPData() { Addr = addr, Command = SPCommand.Receive };
+            for (int i = 0; i < packetReceiveDelay + size; i++)
+                requestPacket.Data.Add(new MilFrame());
+            byte[] oraw = encodePacket(requestPacket);
+
+            byte[] iraw = spiReadWrite(oraw);
+
+            MemoryStream stream = new MemoryStream(iraw);
+            SPData responcePacket = new SPData();
+            responcePacket.Deserialize(stream);
+            return responcePacket.Data;
         }
     }
-    */
+
 
     /*
     `define ESC_WSERVERR	16'hFFA0

@@ -7,14 +7,7 @@ using System.Linq;
 
 namespace MilTest
 {
-    class MainC
-    {
-        public static void Main()
-        {
-            var t = new ProtocolStatusResponceCase();
-            t.DecodeTest();
-        }
-    }
+    
 
     [TestClass]
     public abstract class ProtocolTestCase
