@@ -38,6 +38,12 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FTD2XX_NET">
+      <HintPath>..\lib\FTD2XX_NET.dll</HintPath>
+    </Reference>
+    <Reference Include="MPSSELight">
+      <HintPath>..\lib\MPSSELight.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -55,10 +61,10 @@
   <ItemGroup>
     <Compile Include="MilLight\MilLight.cs" />
     <Compile Include="MilLight\ExpirableObject.cs" />
-    <Compile Include="MilLight\MilPacket.cs" />
-    <Compile Include="MilLight\MilPacketData.cs" />
-    <Compile Include="MilLight\SPPacket.cs" />
-    <Compile Include="MilLight\SPPacketData.cs" />
+    <Compile Include="MilLight\MilFrame.cs" />
+    <Compile Include="MilLight\SPFrame.cs" />
+    <Compile Include="MilLight\SPData.cs" />
+    <Compile Include="MilLight\SPStatus.cs" />
     <Compile Include="MilLight\StreamExtensions.cs" />
     <Compile Include="ProtocolTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

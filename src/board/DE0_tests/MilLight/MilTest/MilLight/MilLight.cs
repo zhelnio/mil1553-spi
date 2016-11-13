@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.ComponentModel;
 using MilLight;
 using System.Runtime.CompilerServices;
+using MPSSELight;
 
 namespace MilLight
 {
@@ -28,7 +29,7 @@ namespace MilLight
         WDATA = 0xFFA3
     }
 
-    public interface IMilPacket
+    public interface IMilFrame
     {
         MilType Header { get; set; }
         UInt16 Data { get; set; }
@@ -36,21 +37,127 @@ namespace MilLight
         UInt16 Size { get; }
     }
 
-    public interface ISPPacket
+    public interface ISPFrame
     {
         byte Addr { get; set; }
         UInt16 DataSize { get; }
         SPCommand Command { get; set; }
-        List<IMilPacket> Data { get; set; }
         UInt16 CheckSum { get; }
         UInt16 PackNum { get; set; }
     }
 
-    public interface IBinarySerializable
+    public interface ISPData : ISPFrame
+    {
+        List<IMilFrame> Data { get; set; }
+    }
+
+    public interface ISPStatus : ISPFrame
+    {
+        UInt16 TransmitQueueSize { get; }
+        UInt16 ReceivedQueueSize { get; }
+    }
+
+    public interface IBinaryFrame
     {
         UInt16 Serialize(Stream stream);
         UInt16 Deserialize(Stream stream);
     }
+
+
+
+    
+
+
+
+
+    /*
+    public interface IBridgeStatus
+    {
+        UInt16 TransmitQueueSize { get; }
+        UInt16 ReceivedQueueSize { get; }
+    }
+
+    public interface IMilServiceProtocol
+    {
+        List<IMilPacket> Receive(byte addr, int size);
+        void Transmit(byte addr, List<IMilPacket> data);
+        void DeviceReset(byte addr);
+        IBridgeStatus getDeviceStatus(byte addr);
+    }
+
+    public class MilSpiBridge : IMilServiceProtocol
+    {
+        private string mpsseSerialNumber;
+
+        public MilSpiBridge(String mpsseSerialNumber)
+        {
+            this.mpsseSerialNumber = mpsseSerialNumber;
+        }
+
+        protected byte[] encodePacket(SPPacket packet)
+        {
+            MemoryStream stream = new MemoryStream();
+            packet.Serialize(stream);
+            return stream.ToArray();
+        }
+
+        protected void spiWrite(byte[] data)
+        {
+            using (MpsseDevice mpsse = new FT2232D(mpsseSerialNumber))
+            {
+                SpiDevice spi = new SpiDevice(mpsse);
+                spi.write(data);
+            }
+        }
+
+        protected byte[] spiReadWrite(byte[] data)
+        {
+            using (MpsseDevice mpsse = new FT2232D(mpsseSerialNumber))
+            {
+                SpiDevice spi = new SpiDevice(mpsse);
+                return spi.readWrite(data);
+            }
+        }
+
+        protected void bridgeWrite(SPPacket packet)
+        {
+            byte[] data = encodePacket(packet);
+            spiWrite(data);
+        }
+
+        protected void bridgeReadWrite(SPPacket packet)
+        {
+
+        }
+
+        public void DeviceReset(byte addr)
+        {
+            SPPacket resetPacket = new SPPacket() { Addr = addr, Command = SPCommand.Reset };
+            byte[] data = encodePacket(resetPacket);
+
+            using (MpsseDevice mpsse = new FT2232D("A"))
+            {
+                SpiDevice spi = new SpiDevice(mpsse);
+                spi.write(data);
+            }
+        }
+
+        public IBridgeStatus getDeviceStatus(byte addr)
+        {
+            throw new NotImplementedException();
+        }
+
+        public List<IMilPacket> Receive(byte addr, int size)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Transmit(byte addr, List<IMilPacket> data)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    */
 
     /*
     `define ESC_WSERVERR	16'hFFA0
