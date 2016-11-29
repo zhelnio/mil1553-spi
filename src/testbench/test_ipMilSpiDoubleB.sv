@@ -61,6 +61,29 @@ module test_IpMilSpiDoubleB();
 			end
 
 			begin //tests sequence
+				
+				//get status of blank device
+				begin
+						$display("GetBlankStatus Start");	
+					
+						spiDebug.doPush(16'hAC00);	//addr = AB
+						spiDebug.doPush(16'h00B0);  //size = 0000, cmd = B0				
+						spiDebug.doPush(16'hACB0);	//check sum
+						spiDebug.doPush(16'h0);		//word num
+						spiDebug.doPush(16'h0);		//post packet blank data...
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);	
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);
+
+						$display("GetBlankStatus End");	
+					end	
+
+
+
 				//send data to spi Mil
 				begin
 					$display("TransmitOverSpi Start");	

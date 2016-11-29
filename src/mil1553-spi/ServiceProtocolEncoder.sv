@@ -92,7 +92,7 @@ module ServiceProtocolEncoder(input bit nRst, clk,
 				PACKET_HEAD1_L:	Next = PACKET_HEAD1_W;
 				PACKET_HEAD1_W:	if(packet.done) Next = PACKET_HEAD2_L;
 				PACKET_HEAD2_L:	Next = PACKET_HEAD2_W;
-				PACKET_HEAD2_W:	if(packet.done) Next = PACKET_DATA_LR;
+				PACKET_HEAD2_W:	if(packet.done) Next = (cntr == '0) ? PACKET_CRC_L : PACKET_DATA_LR;
 				PACKET_DATA_LR:	Next = PACKET_DATA_LW;
 				PACKET_DATA_LW:	if(data.done) Next = PACKET_DATA_SR;
 				PACKET_DATA_SR:	Next = PACKET_DATA_SW;

@@ -157,8 +157,8 @@ module MilSpiBlock2	(	input logic nRst, clk,
 							spiControl.outCmdCode 	= TCC_UNKNOWN;
 						end
 			6'b100001:	begin // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
-							spiControl.outDataSize	= rcontrolMS0.memUsed;	
-							spiControl.outAddr 		= SPI_BLOCK_ADDR0; 
+							spiControl.outDataSize	= (spiControl.inSize < rcontrolMS0.memUsed) ? spiControl.inSize : rcontrolMS0.memUsed;	
+							spiControl.outAddr 		= SPI_BLOCK_ADDR0;
 							spiControl.outCmdCode	= spiControl.inCmdCode;
 						end	
 			6'b010001:	begin // TCC_RECEIVE_STS from SPI_BLOCK_ADDR0
@@ -167,7 +167,7 @@ module MilSpiBlock2	(	input logic nRst, clk,
 							spiControl.outCmdCode	= spiControl.inCmdCode;
 						end	
 			6'b100010:	begin // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR1
-							spiControl.outDataSize	= rcontrolMS1.memUsed; 
+							spiControl.outDataSize	= (spiControl.inSize < rcontrolMS1.memUsed) ? spiControl.inSize : rcontrolMS1.memUsed; 
 							spiControl.outAddr 		= SPI_BLOCK_ADDR1; 
 							spiControl.outCmdCode	= spiControl.inCmdCode;
 						end		

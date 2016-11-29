@@ -15,6 +15,7 @@ interface ILinkSpiControl();
 	//from IServiceProtocolDControl
 	logic [7:0] inAddr;
 	logic [7:0] inWordNum;
+	logic [15:0] inSize;
 	ServiceProtocol::TCommandCode 	inCmdCode;
 	logic inPacketStart, inPacketErr, inPacketEnd;
 	
@@ -24,12 +25,12 @@ interface ILinkSpiControl();
 	logic [15:0] outDataSize;	
 	ServiceProtocol::TCommandCode 	outCmdCode;
 	
-	modport slave(	output	inCmdCode, inWordNum, inAddr,
+	modport slave(	output	inCmdCode, inWordNum, inAddr, inSize,
 						 	inPacketStart, inPacketErr, inPacketEnd, 
 						 	spiIsBusy, outQueueOverflow, inQueueOverflow,
 				  	input  	outEnable, outCmdCode, outDataSize, outAddr);
 								
-	modport master(	input 	inCmdCode, inWordNum, inAddr,
+	modport master(	input 	inCmdCode, inWordNum, inAddr, inSize,
 							inPacketStart, inPacketErr, inPacketEnd, 
 							spiIsBusy, outQueueOverflow, inQueueOverflow,
 				  	output 	outEnable, outCmdCode, outDataSize, outAddr);
@@ -70,6 +71,7 @@ module LinkSpi(	input bit 		nRst, clk,
 	assign control.inPacketErr 		= decoderControl.packetErr;
 	assign control.inPacketEnd 		= decoderControl.packetEnd;
 	assign control.inAddr			= decoderControl.addr;
+	assign control.inSize			= decoderControl.size;
 	assign decoderControl.enable	= spiControl.isBusy;
 
 	//IServiceProtocolEControl

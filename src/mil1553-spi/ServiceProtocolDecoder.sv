@@ -9,14 +9,15 @@
 
 interface IServiceProtocolDControl();
 	logic[7:0] 	addr, wordNum;
+	logic[15:0]	size;
 	ServiceProtocol::TCommandCode 	cmdCode;
 	
 	logic packetStart, packetErr, packetEnd, enable;
 	
-	modport slave(	output	addr, cmdCode, wordNum, 
+	modport slave(	output	addr, cmdCode, wordNum, size,
 							packetStart, packetErr, packetEnd, 
 					input   enable);
-	modport master(	input	addr, cmdCode, wordNum, 
+	modport master(	input	addr, cmdCode, wordNum, size,
 							packetStart, packetErr, packetEnd,
 					output 	enable);
 endinterface
@@ -39,7 +40,7 @@ module ServiceProtocolDecoder(input bit nRst, clk,
 	logic[15:0] crc;
 	
 	enum {WAIT, PACKET_HEAD1, PACKET_HEAD2, 
-			PACKET_DATA, PACKET_CRC, PACKET_NUM} State, Next;
+			PACKET_DATA, PACKET_CRC, PACKET_NUM, PACKET_POST} State, Next;
 	
 	always_ff @ (posedge clk) begin
 		if(!nRst | !control.enable)
@@ -47,16 +48,21 @@ module ServiceProtocolDecoder(input bit nRst, clk,
 		else if(receivedData.request) 
 			State <= Next;
 	end
+
+	logic dataParseEnable;
+	assign dataParseEnable = (State == PACKET_DATA || State == PACKET_CRC || 
+							  State == PACKET_NUM  || State == PACKET_POST);
 	
 	assign decodedBus.data = (State == PACKET_DATA) ? receivedData.data : 'z;
 	assign control.wordNum = (State == PACKET_DATA ) ? receivedWordsCntr : 'z;
-	assign control.addr = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.addr : 'z;
-	assign control.cmdCode = (State == PACKET_DATA || State == PACKET_CRC) ? receivedHeader.cmdcode : TCC_UNKNOWN;
+	assign control.addr = (dataParseEnable) ? receivedHeader.addr : 'z;
+	assign control.size = (dataParseEnable) ? receivedHeader.size : 'z;
+	assign control.cmdCode = (dataParseEnable) ? receivedHeader.cmdcode : TCC_UNKNOWN;
 	
 	always_ff @ (posedge clk) begin
 		if(receivedData.request) begin
 			unique case(Next)
-				WAIT:			      crc <= '0; 							
+				WAIT:			crc <= '0; 							
 				PACKET_HEAD1:	begin 
 									headerPart.part1 <= receivedData.data; 
 									crc <= receivedData.data; 
@@ -110,7 +116,8 @@ module ServiceProtocolDecoder(input bit nRst, clk,
 
 			PACKET_DATA:	if(receivedWordsCntr == (receivedHeader.size - 1)) Next = PACKET_CRC;
 			PACKET_CRC:		Next = PACKET_NUM;
-			PACKET_NUM:		Next = PACKET_HEAD1;
+			PACKET_NUM:		Next = PACKET_POST;
+			PACKET_POST:	if(receivedData.data != '0) Next = PACKET_HEAD1;
 		endcase
 	end
 

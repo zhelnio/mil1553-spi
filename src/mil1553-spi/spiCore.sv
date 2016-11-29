@@ -124,7 +124,7 @@ module spiSlave (input  bit nRst, clk,
 	logic _wordInTransmitQueue, _wordInReceiveQueue, _transmitFinished, _doneInsertToTQueue;
 	
 	logic[`DATAW_TOP:0] _tData;
-	assign _tData = (_wordInTransmitQueue | requestInsertToTQueue) ? tData : '0;
+	assign _tData = (_wordInTransmitQueue | requestInsertToTQueue) ? tData : '0; //'1; //'0;
 	
 	assign overflowInTQueue = _wordInTransmitQueue & requestInsertToTQueue;
 	assign overflowInRQueue = _wordInReceiveQueue & requestReceivedToRQueue;
