@@ -112,8 +112,9 @@ module MilSpiBlock2	(	input logic nRst, clk,
 	assign statusControl1.statusWord1 = rcontrolSM1.memUsed;
 
 	//command processing 
-	logic [6:0] confOut;
-	assign { muxKeyPushFromSpi, muxKeyPopToSpi, spiControl.outEnable, nResetRequest } = confOut;
+	logic [8:0] confOut;
+	assign { muxKeyPushFromSpi, muxKeyPopToSpi, spiControl.outEnable, 
+			 nResetRequest, statusControl0.enable, statusControl1.enable } = confOut;
 	assign enablePushToMil0 = (rcontrolSM0.memUsed != 0);
 	assign enablePushToMil1 = (rcontrolSM1.memUsed != 0);
 
@@ -136,15 +137,15 @@ module MilSpiBlock2	(	input logic nRst, clk,
 
 	always_comb begin
 		case(confIn)
-			default:	confOut = 7'b1?1??01; 
-			6'b100001:	confOut = 7'b1?00011; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
-			6'b010001:	confOut = 7'b1?00111; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR0
-			6'b001001:	confOut = 7'b001??01; // TCC_SEND_DATA from SPI_BLOCK_ADDR0
-			6'b000101:	confOut = 7'b1?1??00; // TCC_RESET from SPI_BLOCK_ADDR0
-			6'b100010:	confOut = 7'b1?01011; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR1
-			6'b010010:	confOut = 7'b1?01111; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR1
-			6'b001010:	confOut = 7'b011??01; // TCC_SEND_DATA from SPI_BLOCK_ADDR1
-			6'b000110:	confOut = 7'b1?1??01; // TCC_RESET from SPI_BLOCK_ADDR1
+			default:	confOut = 9'b101000100; 
+			6'b100001:	confOut = 9'b100001100; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR0
+			6'b010001:	confOut = 9'b100011110; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR0
+			6'b001001:	confOut = 9'b001000100; // TCC_SEND_DATA from SPI_BLOCK_ADDR0
+			6'b000101:	confOut = 9'b101000000; // TCC_RESET from SPI_BLOCK_ADDR0
+			6'b100010:	confOut = 9'b100101100; // TCC_RECEIVE_DATA from SPI_BLOCK_ADDR1
+			6'b010010:	confOut = 9'b100111101; // TCC_RECEIVE_STS from SPI_BLOCK_ADDR1
+			6'b001010:	confOut = 9'b011000100; // TCC_SEND_DATA from SPI_BLOCK_ADDR1
+			6'b000110:	confOut = 9'b101000100; // TCC_RESET from SPI_BLOCK_ADDR1
 		endcase
 	end
 

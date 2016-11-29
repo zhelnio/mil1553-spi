@@ -56,7 +56,7 @@ module test_IpMilSpiDoubleB();
 	#20 nRst = 1;
 		fork
 			begin
-				#150000 //max test duration
+				#300000 //max test duration
 				$stop();
 			end
 
@@ -83,7 +83,47 @@ module test_IpMilSpiDoubleB();
 				
 				//wait for mil transmission end
 				#80000
-
+				
+				//current status request
+				fork
+					begin
+						$display("GetStatus Start");	
+					
+						spiDebug.doPush(16'hAC00);	//addr = AB
+						spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
+						spiDebug.doPush(16'h0);		//blank data to receive reply
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);	
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);		
+						spiDebug.doPush(16'h0);
+						spiDebug.doPush(16'hB6B0);	//check sum
+						spiDebug.doPush(16'h0);		//word num
+					
+						$display("GetStatus End");	
+					end	
+					begin
+						@(spiRcvd.data == 16'h0);
+						assert( 1 == 1);
+						@(spiRcvd.data == 16'hAB00 && spiRcvd.request == 1);	//responce addr = AB
+						assert( 1 == 1);
+						@(posedge spiRcvd.request);
+						assert(spiRcvd.data == 16'h02B0);	// responce size = 02, cmd = B0
+						@(posedge spiRcvd.request);
+						assert(spiRcvd.data > 0);	// input queue size
+						@(posedge spiRcvd.request);
+						assert(spiRcvd.data > 0);	// output queue	size
+						@(posedge spiRcvd.request);	// check sum
+						@(posedge spiRcvd.request); // packet num
+						@(posedge spiRcvd.request);	// blank word after the packet
+						assert(spiRcvd.data == '0);
+						$display("GetStatus Ok");				
+					end
+				join
 				
 				fork //get data that was received from Mil
 					begin
