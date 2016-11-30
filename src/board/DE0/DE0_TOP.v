@@ -235,13 +235,13 @@ defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR0 	= 8'hAB;
 defparam milSpi.milSpiBlock.SPI_BLOCK_ADDR1 	= 8'hAC;
 
 defparam milSpi.memoryBlock.RING2_0_MEM_START	= 16'h00;
-defparam milSpi.memoryBlock.RING2_0_MEM_END		= 16'h3F;
+defparam milSpi.memoryBlock.RING2_0_MEM_END		= 16'h3E;
 defparam milSpi.memoryBlock.RING2_1_MEM_START	= 16'h40;
-defparam milSpi.memoryBlock.RING2_1_MEM_END		= 16'h7F;
+defparam milSpi.memoryBlock.RING2_1_MEM_END		= 16'h7E;
 defparam milSpi.memoryBlock.RING2_2_MEM_START	= 16'h80;
-defparam milSpi.memoryBlock.RING2_2_MEM_END		= 16'hBF;
+defparam milSpi.memoryBlock.RING2_2_MEM_END		= 16'hBE;
 defparam milSpi.memoryBlock.RING2_3_MEM_START	= 16'hC0;
-defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFF;
+defparam milSpi.memoryBlock.RING2_3_MEM_END		= 16'hFE;
 
 pll_100 pll(CLOCK_50, clk100);
 

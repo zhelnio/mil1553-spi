@@ -13,7 +13,6 @@
 `define ESC_WSERV		16'hFFA1
 `define ESC_WDATAERR	16'hFFA2
 `define ESC_WDATA		16'hFFA3
-`define ESC_MASK		(14'hFFA << 2)
 
 module milMemEncoder(input bit nRst, clk,
 							IPushMil.slave mil,
@@ -41,19 +40,16 @@ module milMemEncoder(input bit nRst, clk,
 	end
 	
 	always_comb begin
-		escData = '0;
 		unique case(mil.data.dataType)
 			WSERVERR:	escData = `ESC_WSERVERR;
 			WSERV:		escData = `ESC_WSERV;
 			WDATAERR:	escData = `ESC_WDATAERR;
-			WDATA:		if(mil.data.dataWord[15:2] == `ESC_MASK)
-								escData = `ESC_WDATA;
+			WDATA:		escData = `ESC_WDATA;
 		endcase
 		
 		Next = State;
 		unique case(State)
-			IDLE:			if(mil.request)
-								Next = (escData == '0) ? WORD2_LOAD : WORD1_LOAD;
+			IDLE:		if(mil.request) Next = WORD1_LOAD;
 			WORD1_LOAD:	Next = WORD1_WAIT;
 			WORD1_WAIT:	if(push.done) Next = WORD2_LOAD;
 			WORD2_LOAD:	Next = WORD2_WAIT;
@@ -63,7 +59,7 @@ module milMemEncoder(input bit nRst, clk,
 		
 		nextData = 'z;	
 		unique case(Next)
-			IDLE:			;
+			IDLE:		;
 			WORD1_LOAD:	nextData = escData;
 			WORD1_WAIT:	nextData = escData;
 			WORD2_LOAD:	nextData = mil.data.dataWord;
@@ -94,9 +90,6 @@ module memMilEncoder(input bit nRst, clk,
 		else 
 			State = Next;
 	
-	logic isEscData;
-	assign isEscData = (push.data[15:2] == `ESC_MASK);
-	
 	logic idleState;	//strange bug, not working wout this
 	assign idleState = (State == IDLE);	
 	
@@ -123,7 +116,7 @@ module memMilEncoder(input bit nRst, clk,
 	always_comb begin
 		Next = State;
 		unique case(State)
-			IDLE:		if(push.request) Next = (isEscData) ? WORD1_DONE : WORD2_SEND;
+			IDLE:		if(push.request) Next = WORD1_DONE;
 			WORD1_DONE:	Next = WORD2_LOAD;
 			WORD2_LOAD:	if(push.request) Next = WORD2_SEND;	
 			WORD2_SEND: Next = WORD2_WAIT;
