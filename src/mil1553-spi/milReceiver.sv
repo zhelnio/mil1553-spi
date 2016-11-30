@@ -22,9 +22,13 @@ module milReceiver(	input bit nRst, clk,
 	
 	import milStd1553::*;
 	
+	logic _RXin;
+	inputFilter	iFilter0(nRst, clk, mil.RXin, _RXin);
+	inputFilter	iFilter1(nRst, clk, (mil.RXin | mil.nRXin), control.busy);
+
 	logic signal;
-	assign signal = (control.grant) ? mil.RXin : 1'b0;
-	
+	assign signal = (control.grant) ? _RXin : 1'b0;
+
 	logic readStrobe;
 	readStrobeGenerator strobeGen(nRst, clk, signal, readStrobe);
 	
@@ -35,9 +39,7 @@ module milReceiver(	input bit nRst, clk,
 		logic [1:0] 	parity;
 		logic [2:0]		next;
 	} buffer;
-	
-	assign control.busy = mil.RXin | mil.nRXin;
-	
+
 	logic wordReceived, parityIsIncorrect;
 	MilData data;
 	logic [16:0] error;

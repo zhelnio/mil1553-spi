@@ -17,14 +17,17 @@ module spiCore(input  bit nRst, clk, spiClk,
 					
 	logic[`DATAW_TOP:0] tBuffer, rBuffer;
 	logic[`DATAC_TOP:0] cntr;
-	logic clkUp, clkDown, _iPin;
+	logic clkUp, clkDown;
 
-	enum logic[2:0] {IDLE = 3'h1, LOAD = 3'h2, TRANSMIT = 3'h3, READ = 3'h4, SAVE = 3'h5} State, Next;
+	enum logic[4:0] {	IDLE 		= 5'b00001, 
+						LOAD 		= 5'b00010, 
+						TRANSMIT 	= 5'b00100, 
+						READ 		= 5'b01000, 
+						SAVE 		= 5'b10000	} State, Next;
 	
 	upFront		upStrobe(nRst, clk, spiClk, clkUp);
 	downFront	downStrobe(nRst, clk, spiClk, clkDown);
-	inputFilter	iFilter(nRst, clk, iPin, _iPin);
-	
+
 	assign oPin = (State != IDLE) ? tBuffer[`DATAW_TOP] : 1'bz;
 	assign tFinish = (clkDown && State == SAVE);
 
@@ -38,13 +41,13 @@ module spiCore(input  bit nRst, clk, spiClk,
 		unique case(State)
 			IDLE:			begin rBuffer <= 0; {tDone, rDone} <= '0; end
 			LOAD:			begin tBuffer <= tData; cntr <= 0; tDone <= 1; end
-			READ:			if(clkUp) 	rBuffer <= {rBuffer[(`DATAW_TOP - 1):0], _iPin};
+			READ:			if(clkUp) 	rBuffer <= {rBuffer[(`DATAW_TOP - 1):0], iPin};
 			TRANSMIT:	if(clkDown) begin	tBuffer <= tBuffer << 1; cntr <= cntr + 1'b1; end
 			SAVE:			;
 		endcase
 		
 		if(State == READ && Next == SAVE)
-			begin rData <= {rBuffer[(`DATAW_TOP - 1):0], _iPin}; rDone <= 1; end
+			begin rData <= {rBuffer[(`DATAW_TOP - 1):0], iPin}; rDone <= 1; end
 		
 		if({tDone, rDone} != '0)
 			{tDone, rDone} <= '0;
@@ -74,6 +77,9 @@ module spiMaster(	input  bit nRst, clk, spiClk,
 	
 	logic _nCS, _wordInTransmitQueue, _wordInReceiveQueue, _transmissionFinished, _doneInsertToTQueue;
 	logic clkUp;
+
+	logic _miso;
+	inputFilter	iFilter0(nRst, clk, miso, _miso);
 	
 	assign nCS = _nCS;
 	assign sck = (!nCS) ? spiClk : 1'b1;
@@ -108,7 +114,7 @@ module spiMaster(	input  bit nRst, clk, spiClk,
 	end
 	
 	spiCore	spi( .nRst(nRst), .clk(clk), .spiClk(spiClk), 
-	             .tData(tData), .rData(rData), .nCS(_nCS), .iPin(miso), 
+	             .tData(tData), .rData(rData), .nCS(_nCS), .iPin(_miso), 
 					     .tDone(_doneInsertToTQueue), .rDone(requestReceivedToRQueue), 
 					     .oPin(mosi), .tFinish(_transmissionFinished));
 endmodule
@@ -122,6 +128,11 @@ module spiSlave (input  bit nRst, clk,
 					  input logic nCS, sck);
 	
 	logic _wordInTransmitQueue, _wordInReceiveQueue, _transmitFinished, _doneInsertToTQueue;
+
+	logic _mosi, _nCS, _sck;
+	inputFilter	iFilter0(nRst, clk, mosi, _mosi);
+	inputFilter	iFilter1(nRst, clk, nCS, _nCS);
+	inputFilter	iFilter2(nRst, clk, sck, _sck);
 	
 	logic[`DATAW_TOP:0] _tData;
 	assign _tData = (_wordInTransmitQueue | requestInsertToTQueue) ? tData : '0; //'1; //'0;
@@ -129,7 +140,7 @@ module spiSlave (input  bit nRst, clk,
 	assign overflowInTQueue = _wordInTransmitQueue & requestInsertToTQueue;
 	assign overflowInRQueue = _wordInReceiveQueue & requestReceivedToRQueue;
 	assign doneInsertToTQueue = (_wordInTransmitQueue) ? _doneInsertToTQueue : 1'b0;
-	assign isBusy = !nCS;
+	assign isBusy = !_nCS;
 		
 	always_ff @ (posedge clk) begin
 		if(!nRst)
@@ -147,8 +158,8 @@ module spiSlave (input  bit nRst, clk,
 		end
 	end
 	
-	spiCore	spi( .nRst(nRst), .clk(clk), .spiClk(sck), 
-	             .tData(_tData), .rData(rData), .nCS(nCS), .iPin(mosi), 
+	spiCore	spi( .nRst(nRst), .clk(clk), .spiClk(_sck), 
+	             .tData(_tData), .rData(rData), .nCS(_nCS), .iPin(_mosi), 
 					     .tDone(_doneInsertToTQueue), .rDone(requestReceivedToRQueue), 
 					     .oPin(miso), .tFinish(_transmitFinished));
 endmodule
