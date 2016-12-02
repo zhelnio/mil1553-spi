@@ -5,11 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MilLight
+namespace MilTest.MilLight.ServiceProtocol
 {
-    public class SPFrame : ExpirableObject, ISPFrame, IBinaryFrame
+    public abstract class SPFrame : ExpirableObject, ISPFrame
     {
         #region ISPPacket
+
+        protected const UInt16 HeaderSize = 4;
 
         private byte addr;
         public byte Addr
@@ -26,20 +28,7 @@ namespace MilLight
             }
         }
 
-        private byte command;
-        public SPCommand Command
-        {
-            get
-            {
-                Actualize();
-                return (SPCommand)command;
-            }
-            set
-            {
-                command = (byte)value;
-                Expire();
-            }
-        }
+        public abstract SPCommand Command { get; }
 
         public UInt16 PackNum { get; set; }
 
@@ -71,7 +60,7 @@ namespace MilLight
         {
             dataSize = PayloadDataSize();
             checkSum = (UInt16)((addr << 8) + (dataSize >> 8));
-            checkSum += (UInt16)((dataSize << 8) + ((byte)command));
+            checkSum += (UInt16)((dataSize << 8) + ((byte)Command));
             checkSum += PayloadCheckSum();
         }
 
@@ -123,72 +112,5 @@ namespace MilLight
         }
 
         #endregion Equality
-
-        #region IBinaryFrame
-
-        //sizeof_in_words(addr + dataSize + command + CheckSum + PackNum)
-        protected const UInt16 serialisedHeaderSize = 4;
-
-        public UInt16 Serialize(Stream stream)
-        {
-            stream.WriteByte(Addr);
-            stream.WriteUInt16(DataSize);
-            stream.WriteByte((byte)Command);
-
-            UInt16 osize = serialisedHeaderSize;
-            osize += PayloadSerialize(stream);
-
-            stream.WriteUInt16(CheckSum);
-            stream.WriteUInt16(PackNum);
-            return osize;
-        }
-
-        protected virtual UInt16 PayloadSerialize(Stream stream)
-        {
-            return 0;
-        }
-
-        public UInt16 Deserialize(Stream stream)
-        {
-            byte firstSeqByte = 0;
-            do
-            {
-                int data = stream.ReadByte();
-                firstSeqByte = (byte)data;
-            }
-            while (firstSeqByte == 0);
-
-            Addr = firstSeqByte;
-
-            UInt16 payloadSize = stream.ReadUInt16();
-            Command = (SPCommand)stream.ReadByte();
-
-            UInt16 osize = serialisedHeaderSize;
-            osize += PayloadDeserialize(stream, payloadSize);
-
-            DeserializedCheckSum = stream.ReadUInt16();
-            PackNum = stream.ReadUInt16();
-
-            return osize;
-        }
-
-        protected virtual UInt16 PayloadDeserialize(Stream stream, ushort payloadSize)
-        {
-            return 0;
-        }
-
-        private UInt16? DeserializedCheckSum = null;
-
-        public bool IsValid
-        {
-            get { return ((DeserializedCheckSum ?? CheckSum) == CheckSum); }
-        }
-
-        public bool WasDeserialised
-        {
-            get { return (DeserializedCheckSum != null); }
-        }
-
-        #endregion IBinaryFrame
     }
 }

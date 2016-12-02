@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="MilTest.MilLight.ServiceProtocol.ExpirableObject" Collapsed="true">
+    <Position X="10.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EACAAAAAEABAABAAAAAQAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\ExpirableObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.MilFrame" Collapsed="true">
+    <Position X="13" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAQAAABAgAAAgAAAAgAAACJAAJAAAAAQAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\MilFrame.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="header" />
+    </ShowAsAssociation>
+    <Lollipop Position="1.085" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPFrame" Collapsed="true">
+    <Position X="9.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAAAAhAEAAIwBAABgAAAAIAAIAAIAAAEAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPFrame.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Command" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPReceiveReply" Collapsed="true">
+    <Position X="5.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAAAAAAABAAQAAABAAAAAAAABAAAAAQMAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPReceiveReply.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Data" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPReceiveRequest" Collapsed="true">
+    <Position X="10.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAgAAAAAAAAQAAABAQgAAAAAAAAAAAAEAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPReceiveRequest.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPReply" Collapsed="true">
+    <Position X="4.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAACgAAAAAAABAAAAAAAAAIAQAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPReply.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPRequest" Collapsed="true">
+    <Position X="11.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAACQAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPRequest.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPResetRequest" Collapsed="true">
+    <Position X="14.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPResetRequest.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPStatusReply" Collapsed="true">
+    <Position X="3.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAAAAAAAAAAQAgoBAAACAAAAAAAAAAQMAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPStatusReply.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPStatusRequest" Collapsed="true">
+    <Position X="12.5" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAABCAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPStatusRequest.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.SPTransmitRequest" Collapsed="true">
+    <Position X="8" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQgAAAAAAAABAAQAAABAQAAAAAABAAAAAQEAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\SPTransmitRequest.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Data" />
+    </ShowAsCollectionAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="MilTest.MilLight.ServiceProtocol.StreamExtensions" Collapsed="true">
+    <Position X="18.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\StreamExtensions.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.IMilFrame" Collapsed="true">
+    <Position X="6.75" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAgAAAAAAAAgAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.ISPFrame" Collapsed="true">
+    <Position X="18.25" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAEAAAAAAABgAAAAAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.ISPData" Collapsed="true">
+    <Position X="17" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.ISPStatus" Collapsed="true">
+    <Position X="19.25" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAgIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.ISerializable" Collapsed="true">
+    <Position X="18.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="MilTest.MilLight.ServiceProtocol.IDeserializable" Collapsed="true">
+    <Position X="18.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="MilTest.MilLight.ServiceProtocol.SPCommand" Collapsed="true">
+    <Position X="6.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAEAAAABAAAAEAAAAAAAAAAAAAQAAAAAAAAABA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="MilTest.MilLight.ServiceProtocol.MilType" Collapsed="true">
+    <Position X="15.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAEAAAAEABAAAAAAQAAAAAAAAA=</HashCode>
+      <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

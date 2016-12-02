@@ -62,18 +62,27 @@
   </Choose>
   <ItemGroup>
     <Compile Include="MilLight\MilLight.cs" />
-    <Compile Include="MilLight\ExpirableObject.cs" />
-    <Compile Include="MilLight\MilFrame.cs" />
-    <Compile Include="MilLight\SPFrame.cs" />
-    <Compile Include="MilLight\SPData.cs" />
-    <Compile Include="MilLight\SPStatus.cs" />
-    <Compile Include="MilLight\StreamExtensions.cs" />
+    <Compile Include="MilLight\ServiceProtocol\ExpirableObject.cs" />
+    <Compile Include="MilLight\ServiceProtocol\interfaces.cs" />
+    <Compile Include="MilLight\ServiceProtocol\MilFrame.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPFrame.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPReceiveReply.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPReceiveRequest.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPReply.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPRequest.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPResetRequest.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPStatusReply.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPStatusRequest.cs" />
+    <Compile Include="MilLight\ServiceProtocol\SPTransmitRequest.cs" />
+    <Compile Include="MilLight\SpiStream.cs" />
+    <Compile Include="MilLight\ServiceProtocol\StreamExtensions.cs" />
     <Compile Include="ProtocolTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HardwareTest.cs" />
+    <Compile Include="SpiStreamTest.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MilLight\MilLight.cd" />
+    <None Include="MilLight\ServiceProtocol.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <Choose>

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MilLight
+namespace MilTest.MilLight.ServiceProtocol
 {
     public static class StreamExtensions
     {

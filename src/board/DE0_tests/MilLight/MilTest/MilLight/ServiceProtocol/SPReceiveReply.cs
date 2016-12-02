@@ -5,10 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MilLight
+namespace MilTest.MilLight.ServiceProtocol
 {
-    public class SPData : SPFrame, ISPData
+    public class SPReceiveReply : SPReply, ISPData
     {
+        public override SPCommand Command
+        {
+            get { return SPCommand.Receive; }
+        }
+
         public override bool IsActual
         {
             get { return base.IsActual && !Data.Exists(a => !((ExpirableObject)a).IsActual); }
@@ -41,7 +46,7 @@ namespace MilLight
 
         protected override bool PayloadEquals(object obj)
         {
-            SPData o = obj as SPData;
+            ISPData o = obj as ISPData;
             if (o == null)
                 return false;
 
@@ -51,13 +56,6 @@ namespace MilLight
         protected override int PayloadHashCode()
         {
             return Data.GetHashCode();
-        }
-
-        protected override ushort PayloadSerialize(Stream stream)
-        {
-            ushort size = 0;
-            Data.ForEach(a => size += ((IBinaryFrame)a).Serialize(stream));
-            return size;
         }
 
         protected override ushort PayloadDeserialize(Stream stream, ushort payloadSize)

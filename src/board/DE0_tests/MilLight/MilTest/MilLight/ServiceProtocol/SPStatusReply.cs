@@ -5,10 +5,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MilLight
+namespace MilTest.MilLight.ServiceProtocol
 {
-    public class SPStatus : SPFrame, ISPStatus
+    public class SPStatusReply : SPReply, ISPStatus
     {
+        public override SPCommand Command
+        {
+            get { return SPCommand.Status; }
+        }
+
         protected const UInt16 statusPayloadSize = 2;
 
         private ushort transmitQueueSize;
@@ -53,7 +58,7 @@ namespace MilLight
 
         protected override bool PayloadEquals(object obj)
         {
-            SPStatus o = obj as SPStatus;
+            SPStatusReply o = obj as SPStatusReply;
             if (o == null)
                 return false;
 
@@ -67,14 +72,6 @@ namespace MilLight
             hash = hash * 23 + receivedQueueSize.GetHashCode();
             hash = hash * 23 + transmitQueueSize.GetHashCode();
             return hash;
-        }
-
-        protected override ushort PayloadSerialize(Stream stream)
-        {
-            stream.WriteUInt16(receivedQueueSize);
-            stream.WriteUInt16(transmitQueueSize);
-
-            return statusPayloadSize;
         }
 
         protected override ushort PayloadDeserialize(Stream stream, ushort payloadSize)

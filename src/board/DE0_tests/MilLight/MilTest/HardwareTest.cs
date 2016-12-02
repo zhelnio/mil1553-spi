@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MilLight;
 using System.Threading;
 using System.Linq;
+using MilTest.MilLight.ServiceProtocol;
 
 namespace MilTest
 {
@@ -12,103 +13,123 @@ namespace MilTest
     {
         public static void Main()
         {
-            //var t = new HardwareTest();
-            //t.HardwareTransmissionTest();
+            var t = new HardwareTest();
+            t.TransmissionTest();
         }
     }
 
-    //[TestClass]
-    //public class HardwareTest
-    //{
-    //    [TestMethod]
-    //    public void HardwareTransmissionTest()
-    //    {
-    //        IMilSpiBridge bridge = new MilSpiBridge("A");
 
-    //        List<IMilFrame> tdata = new List<IMilFrame>()
-    //        {
-    //            new MilFrame() { Data = 0x0001, Header = MilType.WSERV },
-    //            new MilFrame() { Data = 0x0002 },
-    //            new MilFrame() { Data = 0xAB45 },
-    //            new MilFrame() { Data = 0xFFA1 }
-    //        };
+    [TestClass]
+    public class HardwareTest
+    {
+        private Random rnd = new Random();
 
-    //        bridge.Transmit(0xAB, tdata);
+        MilFrame randomFrame()
+        {
+            MilFrame frame = new MilFrame();
 
-    //        Thread.Sleep(100);
+            frame.Header = (rnd.Next(2) == 0) ? MilType.WSERV : MilType.WDATA;
+            frame.Data = (ushort)rnd.Next();
 
+            return frame;
+        }
 
+        [TestMethod]
+        public void TransmissionTest()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
 
-    //        List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+            List<IMilFrame> tdata = new List<IMilFrame>()
+            {
+                new MilFrame() { Data = 0x0001, Header = MilType.WSERV },
+                new MilFrame() { Data = 0x0002 },
+                new MilFrame() { Data = 0xAB45 },
+                new MilFrame() { Data = 0xFFA1 }
+            };
 
-    //        Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
-    //    }
+            bridge.Transmit(0xAB, tdata);
 
-    //    [TestMethod]
-    //    public void EmptyReceiveTest()
-    //    {
-    //        IMilSpiBridge bridge = new MilSpiBridge("A");
+            Thread.Sleep(200);
 
+            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, 4);
 
-    //        List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        }
 
-    //       // Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
-    //    }
+        [TestMethod]
+        public void RandomTransmissionTest()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
 
-    //}
-        //public HardwareTest()
-        //{
-        //    //
-        //    // TODO: Add constructor logic here
-        //    //
-        //}
+            List<IMilFrame> tdata = new List<IMilFrame>()
+            {
+                randomFrame()
+            };
 
-        //private TestContext testContextInstance;
+            bridge.Transmit(0xAB, tdata);
 
-        ///// <summary>
-        /////Gets or sets the test context which provides
-        /////information about and functionality for the current test run.
-        /////</summary>
-        //public TestContext TestContext
-        //{
-        //    get
-        //    {
-        //        return testContextInstance;
-        //    }
-        //    set
-        //    {
-        //        testContextInstance = value;
-        //    }
-        //}
+            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, 1);
 
-        //#region Additional test attributes
-        ////
-        //// You can use the following additional attributes as you write your tests:
-        ////
-        //// Use ClassInitialize to run code before running the first test in the class
-        //// [ClassInitialize()]
-        //// public static void MyClassInitialize(TestContext testContext) { }
-        ////
-        //// Use ClassCleanup to run code after all tests in a class have run
-        //// [ClassCleanup()]
-        //// public static void MyClassCleanup() { }
-        ////
-        //// Use TestInitialize to run code before running each test 
-        //// [TestInitialize()]
-        //// public void MyTestInitialize() { }
-        ////
-        //// Use TestCleanup to run code after each test has run
-        //// [TestCleanup()]
-        //// public void MyTestCleanup() { }
-        ////
-        //#endregion
+            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        }
 
         //[TestMethod]
-        //public void TestMethod1()
+        //public void HardwareRandomRepeat()
         //{
-        //    //
-        //    // TODO: Add test logic here
-        //    //
+        //    IMilSpiBridge bridge = new MilSpiBridge("A");
+
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        List<IMilFrame> tdata = new List<IMilFrame>()
+        //        {
+        //            randomFrame(),
+        //            randomFrame(),
+        //            randomFrame(),
+        //            randomFrame(),
+        //        };
+
+        //        bridge.Transmit(0xAB, tdata);
+
+        //        Thread.Sleep(200);
+
+        //        List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+
+        //        Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        //    }
         //}
-   
+
+        //[TestMethod]
+        //public void HardwareRandomTransmissionTest()
+        //{
+        //    IMilSpiBridge bridge = new MilSpiBridge("A");
+
+        //    List<IMilFrame> tdata = new List<IMilFrame>()
+        //    {
+        //        randomFrame(),
+        //        randomFrame(),
+        //        randomFrame(),
+        //        randomFrame(),
+        //    };
+
+        //    bridge.Transmit(0xAB, tdata);
+
+        //    Thread.Sleep(200);
+
+        //    List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+
+        //    Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        //}
+
+        //[TestMethod]
+        //public void EmptyReceiveTest()
+        //{
+        //    IMilSpiBridge bridge = new MilSpiBridge("A");
+
+
+        //    List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+
+        //    // Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        //}
+
+    }
 }
