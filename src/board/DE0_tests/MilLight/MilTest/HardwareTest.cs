@@ -60,98 +60,88 @@ namespace MilTest
     [TestClass]
     public class HardwareTest
     {
-        
+        const byte transmitterAddr = 0xAB;
+        const byte receiverAddr = 0xAC;
+        const string mpsseDeviceSerialNum = "A";
+        const int cycleTestCount = 100;
 
         [TestInitialize()]
         public void HardwareTestTestInitialize()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
-            bridge.DeviceReset(0xAB);
+            IMilSpiBridge bridge = new MilSpiBridge(mpsseDeviceSerialNum);
+            bridge.DeviceReset(transmitterAddr);
         }
 
         [TestMethod]
         public void ResetAndStatusTest()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
+            IMilSpiBridge bridge = new MilSpiBridge(mpsseDeviceSerialNum);
 
             List<IMilFrame> tdata = PacketGenerator.randomPacket(1);
 
-            bridge.Transmit(0xAB, tdata);
+            bridge.Transmit(transmitterAddr, tdata);
 
             Thread.Sleep(500);
 
-            ISPStatus status = bridge.getDeviceStatus(0xAC);
+            ISPStatus status = bridge.getDeviceStatus(receiverAddr);
             Assert.IsTrue(status.ReceivedQueueSize == 1);
 
-            bridge.DeviceReset(0xAB);
+            bridge.DeviceReset(transmitterAddr);
 
             Thread.Sleep(200);
 
-            status = bridge.getDeviceStatus(0xAC);
+            status = bridge.getDeviceStatus(receiverAddr);
             Assert.IsTrue(status.ReceivedQueueSize == 0);
         }
 
         [TestMethod]
         public void TransmissionFixedTest()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
-
-            List<IMilFrame> tdata = PacketGenerator.fixedPacket();
-
-            bridge.Transmit(0xAB, tdata);
-
-            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, (ushort)tdata.Count);
-
-            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+            TransmissionTest(PacketGenerator.fixedPacket());
         }
 
         [TestMethod]
         public void TransmissionRandom1Test()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
-
-            List<IMilFrame> tdata = PacketGenerator.randomPacket(1);
-
-            bridge.Transmit(0xAB, tdata);
-
-            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, 1);
-
-            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+            TransmissionTest(PacketGenerator.randomPacket(1));
         }
 
         [TestMethod]
         public void TransmissionRandomNTest()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
-
-            List<IMilFrame> tdata = PacketGenerator.randomPacket();
-
-            bridge.Transmit(0xAB, tdata);
-
-            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, (ushort)tdata.Count);
-
-            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+            TransmissionTest(PacketGenerator.randomPacket());
         }
 
         [TestMethod]
         public void TransmissionFixedCycleTest()
         {
-            for (int i = 0; i < 100; i++)
-                TransmissionFixedTest();
+            for (int i = 0; i < cycleTestCount; i++)
+                TransmissionTest(PacketGenerator.fixedPacket());
         }
 
         [TestMethod]
         public void TransmissionRandom1CycleTest()
         {
-            for (int i = 0; i < 100; i++)
-                TransmissionRandom1Test();
+            for (int i = 0; i < cycleTestCount; i++)
+                TransmissionTest(PacketGenerator.randomPacket(1));
         }
 
         [TestMethod]
         public void TransmissionRandomNCycleTest()
         {
-            for (int i = 0; i < 100; i++)
-                TransmissionRandomNTest();
+            for (int i = 0; i < cycleTestCount; i++)
+                TransmissionTest(PacketGenerator.randomPacket());
+        }
+
+        void TransmissionTest(List<IMilFrame> tdata)
+        {
+            IMilSpiBridge bridge = new MilSpiBridge(mpsseDeviceSerialNum);
+
+            bridge.Transmit(transmitterAddr, tdata);
+
+            List<IMilFrame> rdata = bridge.WaitReceive(receiverAddr, (ushort)tdata.Count);
+
+            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
         }
     }
 }

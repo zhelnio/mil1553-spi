@@ -37,8 +37,6 @@ namespace MilLight
         {
             MpsseParams mp = new MpsseParams() { clockDevisor = 1 };
             return new FT2232D(mpsseSerialNumber, mp);
-
-            //return new FT2232D(mpsseSerialNumber);
         }
 
         protected void spiWrite(byte[] data)
@@ -162,12 +160,24 @@ namespace MilLight
 
         public List<IMilFrame> WaitReceive(byte addr, UInt16 size)
         {
-            var cts = new CancellationTokenSource(3000);
+            const int maxWaitTime = 3000;
+            const int recheckPeriod = 300;
+
+            var cts = new CancellationTokenSource(maxWaitTime);
+
             return Task<List<IMilFrame>>.Run(() =>
             {
                 List<IMilFrame> result = new List<IMilFrame>();
-                while (!cts.Token.IsCancellationRequested && result.Count < size)
+                while (!cts.Token.IsCancellationRequested)
+                {
                     result.AddRange(Receive(addr, (UInt16)(size - result.Count)));
+
+                    if (result.Count == size)
+                        break;
+
+                    Task.Delay(recheckPeriod);
+                }
+                    
                 return result;
 
             }, cts.Token).Result;
