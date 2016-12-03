@@ -72,16 +72,16 @@ module test_IpMilSpiDoubleA();
 					$display("TransmitOverSpi Start");	
 				
 					spiDebug0.doPush(16'hAB00);	//addr = AB
-					spiDebug0.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
+					spiDebug0.doPush(16'h08A2);  //size = 0006, cmd = A2 (send data to mil)
 					spiDebug0.doPush(16'hFFA1);  //next word is WSERV
 					spiDebug0.doPush(16'h0001);	//WSERV h0001
-					
+					spiDebug0.doPush(16'hFFA3);
 					spiDebug0.doPush(16'h0002);	//WDATA h0002
+					spiDebug0.doPush(16'hFFA3);
 					spiDebug0.doPush(16'hAB45);	//WDATA hAB45
 					spiDebug0.doPush(16'hFFA3);	//next word is ESC_WDATA
 					spiDebug0.doPush(16'hFFA1);	//WDATA hFFA1
-					
-					spiDebug0.doPush(16'h5BCF);	//check sum
+					spiDebug0.doPush(16'h5D15);	//check sum
 					spiDebug0.doPush(16'h0);	//word num
 					
 					$display("TransmitOverSpi End");	
@@ -109,6 +109,10 @@ module test_IpMilSpiDoubleA();
 						spiDebug1.doPush(16'h0);
 						spiDebug1.doPush(16'hB6B2);	//check sum
 						spiDebug1.doPush(16'h0);		//word num
+						spiDebug1.doPush(16'h0);
+						spiDebug1.doPush(16'h0);
+						spiDebug1.doPush(16'h0);
+						spiDebug1.doPush(16'h0);
 					
 						$display("ReceiveOverSpi End");		
 					end
@@ -116,13 +120,17 @@ module test_IpMilSpiDoubleA();
 						@(spiRcvd1.data == 16'hAC00 && spiRcvd1.request == 1);	//responce addr = AC
 						assert( 1 == 1);
 						@(posedge spiRcvd1.request);
-						assert(spiRcvd1.data == 16'h06B2);	// responce size = 0006, cmd = B2
+						assert(spiRcvd1.data == 16'h08B2);	// responce size = 0006, cmd = B2
 						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'hFFA1);	//next word is WSERV
 						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'h0001);	//WSERV that was received from mil
 						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hFFA3);
+						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'h0002);	//WDATA received from mil
+						@(posedge spiRcvd1.request);
+						assert(spiRcvd1.data == 16'hFFA3);
 						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'hAB45);	//WDATA received from mil
 						@(posedge spiRcvd1.request);
@@ -130,7 +138,7 @@ module test_IpMilSpiDoubleA();
 						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'hFFA1);	//WDATA received from mil
 						@(posedge spiRcvd1.request);
-						assert(spiRcvd1.data == 16'h5CDF);	//check sum
+						assert(spiRcvd1.data == 16'h5D25);	//check sum
 						@(posedge spiRcvd1.request);
 						assert(spiRcvd1.data == 16'h0001);	//packet num
 						@(posedge spiRcvd1.request);	

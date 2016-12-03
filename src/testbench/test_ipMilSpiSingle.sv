@@ -70,17 +70,20 @@ module test_IpMilSpiSingle();
 					$display("TransmitOverSpi Start");	
 				
 					spiDebug.doPush(16'hAB00);	//addr = AB
-					spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2 (send data to mil)
-					spiDebug.doPush(16'hFFA1);  //next word is WSERV
-					spiDebug.doPush(16'h0001);	//WSERV h0001
-					
-					spiDebug.doPush(16'h0002);	//WDATA h0002
-					spiDebug.doPush(16'hAB45);	//WDATA hAB45
-					spiDebug.doPush(16'hFFA3);	//next word is ESC_WDATA
-					spiDebug.doPush(16'hFFA1);	//WDATA hFFA1
-					
-					spiDebug.doPush(16'h5BCF);	//check sum
+					spiDebug.doPush(16'h08A2);  //size = 0008, cmd = A2
+					spiDebug.doPush(16'hFFA1); 
+					spiDebug.doPush(16'h0001); 
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'h0002);
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'hAB45);
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'hFFA1);
+					spiDebug.doPush(16'h5D15);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
 					
 					$display("TransmitOverSpi End");	
 				end
@@ -91,19 +94,15 @@ module test_IpMilSpiSingle();
 					$display("GetStatus Start");	
 				
 					spiDebug.doPush(16'hAB00);	//addr = AB
-					spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
-					spiDebug.doPush(16'h0);		//blank data to receive reply
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);	
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);
-					spiDebug.doPush(16'hB5B0);	//check sum
+					spiDebug.doPush(16'h00B0);  //size = 000A, cmd = B0				
+					spiDebug.doPush(16'hABB0);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);		// blank word after the packet
 				
 					$display("GetStatus End");	
 				end	
@@ -145,6 +144,10 @@ module test_IpMilSpiSingle();
 					spiDebug.doPush(16'h0);
 					spiDebug.doPush(16'hB5B2);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);		// blank word after the packet
 				
 					$display("ReceiveOverSpi End");		
 				end
@@ -152,17 +155,21 @@ module test_IpMilSpiSingle();
 					@(spiRcvd.data == 16'hAB00 && spiRcvd.request == 1);	//responce addr = AB
 					assert( 1 == 1);
 					@(posedge spiRcvd.request);
-					assert(spiRcvd.data == 16'h04B2);	// responce size = 04, cmd = B2
+					assert(spiRcvd.data == 16'h06B2);	// responce size = 06, cmd = B2
 					@(posedge spiRcvd.request);
 					assert(spiRcvd.data == 16'hFFA1);	//next word is WSERV
 					@(posedge spiRcvd.request);
 					assert(spiRcvd.data == 16'hAB00);	//WSERV that was received from mil
 					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hFFA3);	//next word is WDATA
+					@(posedge spiRcvd.request);
 					assert(spiRcvd.data == 16'hEFAB);	//WDATA received from mil
+					@(posedge spiRcvd.request);
+					assert(spiRcvd.data == 16'hFFA3);	//next word is WDATA
 					@(posedge spiRcvd.request);
 					assert(spiRcvd.data == 16'h9D4D);	//WDATA received from mil
 					@(posedge spiRcvd.request);
-					assert(spiRcvd.data == 16'hE74B);	//check sum
+					assert(spiRcvd.data == 16'hE891);	//check sum
 					@(posedge spiRcvd.request);
 					assert(spiRcvd.data == 16'h0002);	//packet num
 					@(posedge spiRcvd.request);	
@@ -179,6 +186,10 @@ module test_IpMilSpiSingle();
 				spiDebug.doPush(16'h00A0);  //size = 0000, cmd = A2				
 				spiDebug.doPush(16'h01A0);  //check sum
 				spiDebug.doPush(16'h0);		//word num
+				spiDebug.doPush(16'h0);		//blank postfix
+				spiDebug.doPush(16'h0);
+				spiDebug.doPush(16'h0);
+				spiDebug.doPush(16'h0);		// blank word after the packet
 			
 				$display("Reset End");		
 			end
@@ -191,6 +202,10 @@ module test_IpMilSpiSingle();
 				spiDebug.doPush(16'h00A0);  //size = 0000, cmd = A2	
 				spiDebug.doPush(16'hABA0);  //check sum
 				spiDebug.doPush(16'h0);		//word num	
+				spiDebug.doPush(16'h0);		//blank postfix
+				spiDebug.doPush(16'h0);
+				spiDebug.doPush(16'h0);
+				spiDebug.doPush(16'h0);		// blank word after the packet
 			
 				$display("Reset End");		
 			end
@@ -204,19 +219,15 @@ module test_IpMilSpiSingle();
 					$display("GetStatusAfterReset Start");	
 				
 					spiDebug.doPush(16'hAB00);	//addr = AB
-					spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
-					spiDebug.doPush(16'h0);		//blank data to receive reply
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);	
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h00B0);  //size = 000A, cmd = B0				
 					spiDebug.doPush(16'hB5B0);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);		// blank word after the packet
 				
 					$display("GetStatusAfterReset End");		
 				end

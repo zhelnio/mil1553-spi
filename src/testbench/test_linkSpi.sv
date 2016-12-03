@@ -40,7 +40,7 @@ module test_linkSpi();
 	#20 nRst = 1;
 	fork
 		begin
-			#160000 //max test duration
+			#200000 //max test duration
 			$stop();
 		end
 
@@ -50,17 +50,20 @@ module test_linkSpi();
 					$display("TransmitOverSpi Start");	
 				
 					spiDebug.doPush(16'hAB00);	//addr = AB
-					spiDebug.doPush(16'h06A2);  //size = 0006, cmd = A2
+					spiDebug.doPush(16'h08A2);  //size = 0008, cmd = A2
 					spiDebug.doPush(16'hFFA1); 
 					spiDebug.doPush(16'h0001); 
-					
+					spiDebug.doPush(16'hFFA3);
 					spiDebug.doPush(16'h0002);
+					spiDebug.doPush(16'hFFA3);
 					spiDebug.doPush(16'hAB45);
 					spiDebug.doPush(16'hFFA3);
 					spiDebug.doPush(16'hFFA1);
-					
-					spiDebug.doPush(16'h5BCF);	//check sum
+					spiDebug.doPush(16'h5D15);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
 					
 					$display("TransmitOverSpi End");	
 				end
@@ -86,49 +89,86 @@ module test_linkSpi();
 					assert( pushFromSpi.data == 16'h0001);
 					@(posedge pushFromSpi.request);
 					assert( control.inWordNum == 8'd2);
-					assert( pushFromSpi.data == 16'h0002);
+					assert( pushFromSpi.data == 16'hFFA3);
 					@(posedge pushFromSpi.request);
 					assert( control.inWordNum == 8'd3);
-					assert( pushFromSpi.data == 16'hAB45);
+					assert( pushFromSpi.data == 16'h0002);
 					@(posedge pushFromSpi.request);
 					assert( control.inWordNum == 8'd4);
 					assert( pushFromSpi.data == 16'hFFA3);
 					@(posedge pushFromSpi.request);
 					assert( control.inWordNum == 8'd5);
+					assert( pushFromSpi.data == 16'hAB45);
+					@(posedge pushFromSpi.request);
+					assert( control.inWordNum == 8'd6);
+					assert( pushFromSpi.data == 16'hFFA3);
+					@(posedge pushFromSpi.request);
+					assert( control.inWordNum == 8'd7);
 					assert( pushFromSpi.data == 16'hFFA1);
 					$display("TransmitOverSpi data decode Ok");
 				end
 			join //send data to spi Mil
+
+			fork //send data to spi Mil incorrect CheckSum
+				begin
+					$display("TransmitOverSpi incorrect CheckSum Start");	
+				
+					spiDebug.doPush(16'hAB00);	//addr = AB
+					spiDebug.doPush(16'h08A2);  //size = 0008, cmd = A2
+					spiDebug.doPush(16'hFFA1); 
+					spiDebug.doPush(16'h0001); 
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'h0002);
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'hAB45);
+					spiDebug.doPush(16'hFFA3);
+					spiDebug.doPush(16'hFFA1);
+					spiDebug.doPush(16'h5D10);	//check sum
+					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					
+					$display("TransmitOverSpi incorrect CheckSum End");	
+				end
+
+				begin
+					assert( control.inCmdCode == TCC_UNKNOWN);
+					@(posedge control.inPacketStart);
+					assert( control.inAddr == 8'hAB);
+					assert( control.inCmdCode == TCC_SEND_DATA);
+					@(posedge control.inPacketErr);
+					assert( 1 == 1);
+					@(control.inCmdCode == TCC_UNKNOWN);
+					assert( 1 == 1);
+					$display("TransmitOverSpi incorrect CheckSum command decode Ok");
+				end
+
+			join //send data to spi Mil incorrect CheckSum
 				
 			fork //current status request
 				begin
 					$display("GetStatus Start");	
 				
 					spiDebug.doPush(16'hAB00);	//addr = AB
-					spiDebug.doPush(16'h0AB0);  //size = 000A, cmd = B0				
-					spiDebug.doPush(16'h0);		//blank data to receive reply
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);	
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);		
-					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h00B0);  //size = 000A, cmd = B0				
 					spiDebug.doPush(16'hB5B0);	//check sum
 					spiDebug.doPush(16'h0);		//word num
+					spiDebug.doPush(16'h0);		//blank postfix
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
+					spiDebug.doPush(16'h0);
 				
 					$display("GetStatus End");		
 				end
 
 				begin
 					assert( control.inCmdCode == TCC_UNKNOWN)
-					@(posedge control.inPacketStart);
-					assert( control.inAddr == 8'hAB);
-					assert( control.inCmdCode == TCC_RECEIVE_STS);
-					@(posedge control.inPacketEnd);
+					@(control.inAddr == 8'hAB);
 					assert( 1 == 1);
+					assert( control.inCmdCode == TCC_RECEIVE_STS);
+					assert( control.inSize == 0);
 					@(control.inCmdCode == TCC_UNKNOWN);
 					assert( 1 == 1);
 					$display("GetStatus command decode Ok");
@@ -184,10 +224,8 @@ module test_linkSpi();
 
 				begin
 					assert( control.inCmdCode == TCC_UNKNOWN);
-					@(posedge control.inPacketStart);
-					assert( control.inAddr == 8'h01);
+					@( control.inAddr == 8'h01);
 					assert( control.inCmdCode == TCC_RESET);
-					@(posedge control.inPacketEnd);
 					assert( 1 == 1);
 					@(control.inCmdCode == TCC_UNKNOWN);
 					assert( 1 == 1);
@@ -208,10 +246,8 @@ module test_linkSpi();
 				end
 				begin
 					assert( control.inCmdCode == TCC_UNKNOWN);
-					@(posedge control.inPacketStart);
-					assert( control.inAddr == 8'hAB);
+					@( control.inAddr == 8'hAB);
 					assert( control.inCmdCode == TCC_RESET);
-					@(posedge control.inPacketEnd);
 					assert( 1 == 1);
 					@(control.inCmdCode == TCC_UNKNOWN);
 					assert( 1 == 1);

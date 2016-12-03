@@ -115,7 +115,8 @@ module MilSpiBlock	(	input logic nRst, clk,
 		case(commandCode)
 			default:			spiControl.outDataSize = '0;
 			TCC_RECEIVE_STS:	spiControl.outDataSize = statusControl.statusSize;
-			TCC_RECEIVE_DATA:	spiControl.outDataSize = rcontrolMS.memUsed;	
+			TCC_RECEIVE_DATA:	spiControl.outDataSize = (spiControl.inSize < rcontrolMS.memUsed) ? 
+															spiControl.inSize : rcontrolMS.memUsed; 
 		endcase
 	end
 
