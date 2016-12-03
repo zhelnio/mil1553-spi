@@ -106,5 +106,10 @@ namespace MilTest.MilLight.ServiceProtocol
         }
 
         #endregion
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1:X4}", Header, Data);
+        }
     }
 }

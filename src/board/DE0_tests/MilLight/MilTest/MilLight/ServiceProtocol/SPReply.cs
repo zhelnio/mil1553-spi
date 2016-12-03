@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MilTest.MilLight.ServiceProtocol
 {
-    public abstract class SPReply : SPFrame, IDeserializable
+    public abstract class SPReply : SPFrame, IDeserializable, IValidate
     {
         public UInt16 Deserialize(Stream stream)
         {

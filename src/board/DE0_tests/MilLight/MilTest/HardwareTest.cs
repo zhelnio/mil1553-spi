@@ -14,57 +14,103 @@ namespace MilTest
         public static void Main()
         {
             var t = new HardwareTest();
-            t.TransmissionTest();
+            t.TransmissionFixedTest();
         }
     }
 
-
-    [TestClass]
-    public class HardwareTest
+    static class PacketGenerator
     {
-        private Random rnd = new Random();
+        private static Random rnd = new Random();
 
-        MilFrame randomFrame()
+        public static List<IMilFrame> randomPacket(int size)
         {
-            MilFrame frame = new MilFrame();
+            if (size == 0)
+                throw new ArgumentException("packet size should be greater then 0");
 
-            frame.Header = (rnd.Next(2) == 0) ? MilType.WSERV : MilType.WDATA;
-            frame.Data = (ushort)rnd.Next();
+            List<IMilFrame> result = new List<IMilFrame>();
 
-            return frame;
+            //header
+            result.Add(new MilFrame() { Header = MilType.WSERV, Data = (ushort)rnd.Next() });
+
+            //body
+            for (int i = 1; i < size; i++)
+                result.Add(new MilFrame() { Header = MilType.WDATA, Data = (ushort)rnd.Next() });
+
+            return result;
         }
 
-        [TestMethod]
-        public void TransmissionTest()
+        public static List<IMilFrame> randomPacket()
         {
-            IMilSpiBridge bridge = new MilSpiBridge("A");
+            const int maxPacketSize = 30;
+            return randomPacket(rnd.Next(1, maxPacketSize));
+        }
 
-            List<IMilFrame> tdata = new List<IMilFrame>()
+        public static List<IMilFrame> fixedPacket()
+        {
+            return new List<IMilFrame>()
             {
                 new MilFrame() { Data = 0x0001, Header = MilType.WSERV },
                 new MilFrame() { Data = 0x0002 },
                 new MilFrame() { Data = 0xAB45 },
                 new MilFrame() { Data = 0xFFA1 }
             };
+        }
+    }
+
+    [TestClass]
+    public class HardwareTest
+    {
+        
+
+        [TestInitialize()]
+        public void HardwareTestTestInitialize()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
+            bridge.DeviceReset(0xAB);
+        }
+
+        [TestMethod]
+        public void ResetAndStatusTest()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
+
+            List<IMilFrame> tdata = PacketGenerator.randomPacket(1);
 
             bridge.Transmit(0xAB, tdata);
 
+            Thread.Sleep(500);
+
+            ISPStatus status = bridge.getDeviceStatus(0xAC);
+            Assert.IsTrue(status.ReceivedQueueSize == 1);
+
+            bridge.DeviceReset(0xAB);
+
             Thread.Sleep(200);
 
-            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, 4);
+            status = bridge.getDeviceStatus(0xAC);
+            Assert.IsTrue(status.ReceivedQueueSize == 0);
+        }
+
+        [TestMethod]
+        public void TransmissionFixedTest()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
+
+            List<IMilFrame> tdata = PacketGenerator.fixedPacket();
+
+            bridge.Transmit(0xAB, tdata);
+
+            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, (ushort)tdata.Count);
 
             Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
         }
 
         [TestMethod]
-        public void RandomTransmissionTest()
+        public void TransmissionRandom1Test()
         {
             IMilSpiBridge bridge = new MilSpiBridge("A");
 
-            List<IMilFrame> tdata = new List<IMilFrame>()
-            {
-                randomFrame()
-            };
+            List<IMilFrame> tdata = PacketGenerator.randomPacket(1);
 
             bridge.Transmit(0xAB, tdata);
 
@@ -73,63 +119,39 @@ namespace MilTest
             Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
         }
 
-        //[TestMethod]
-        //public void HardwareRandomRepeat()
-        //{
-        //    IMilSpiBridge bridge = new MilSpiBridge("A");
+        [TestMethod]
+        public void TransmissionRandomNTest()
+        {
+            IMilSpiBridge bridge = new MilSpiBridge("A");
 
-        //    for (int i = 0; i < 10; i++)
-        //    {
-        //        List<IMilFrame> tdata = new List<IMilFrame>()
-        //        {
-        //            randomFrame(),
-        //            randomFrame(),
-        //            randomFrame(),
-        //            randomFrame(),
-        //        };
+            List<IMilFrame> tdata = PacketGenerator.randomPacket();
 
-        //        bridge.Transmit(0xAB, tdata);
+            bridge.Transmit(0xAB, tdata);
 
-        //        Thread.Sleep(200);
+            List<IMilFrame> rdata = bridge.WaitReceive(0xAC, (ushort)tdata.Count);
 
-        //        List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
+            Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
+        }
 
-        //        Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
-        //    }
-        //}
+        [TestMethod]
+        public void TransmissionFixedCycleTest()
+        {
+            for (int i = 0; i < 100; i++)
+                TransmissionFixedTest();
+        }
 
-        //[TestMethod]
-        //public void HardwareRandomTransmissionTest()
-        //{
-        //    IMilSpiBridge bridge = new MilSpiBridge("A");
+        [TestMethod]
+        public void TransmissionRandom1CycleTest()
+        {
+            for (int i = 0; i < 100; i++)
+                TransmissionRandom1Test();
+        }
 
-        //    List<IMilFrame> tdata = new List<IMilFrame>()
-        //    {
-        //        randomFrame(),
-        //        randomFrame(),
-        //        randomFrame(),
-        //        randomFrame(),
-        //    };
-
-        //    bridge.Transmit(0xAB, tdata);
-
-        //    Thread.Sleep(200);
-
-        //    List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
-
-        //    Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
-        //}
-
-        //[TestMethod]
-        //public void EmptyReceiveTest()
-        //{
-        //    IMilSpiBridge bridge = new MilSpiBridge("A");
-
-
-        //    List<IMilFrame> rdata = bridge.Receive(0xAC, 4);
-
-        //    // Assert.IsTrue(Enumerable.SequenceEqual(rdata, tdata));
-        //}
-
+        [TestMethod]
+        public void TransmissionRandomNCycleTest()
+        {
+            for (int i = 0; i < 100; i++)
+                TransmissionRandomNTest();
+        }
     }
 }

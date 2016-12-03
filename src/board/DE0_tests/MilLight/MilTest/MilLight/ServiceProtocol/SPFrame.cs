@@ -112,5 +112,10 @@ namespace MilTest.MilLight.ServiceProtocol
         }
 
         #endregion Equality
+
+        public override string ToString()
+        {
+            return string.Format("cmd:{0} size:{1:X4} crc:{2:X4} num:{3:X4}", Command, DataSize, CheckSum, PackNum);
+        }
     }
 }

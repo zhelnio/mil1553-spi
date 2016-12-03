@@ -72,5 +72,10 @@ namespace MilTest.MilLight.ServiceProtocol
 
             return payloadSize;
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0} data:{1}", base.ToString(), string.Join(", ", Data));
+        }
     }
 }

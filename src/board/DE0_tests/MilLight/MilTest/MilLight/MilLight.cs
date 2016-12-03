@@ -11,6 +11,8 @@ using System.Runtime.CompilerServices;
 using MPSSELight;
 using System.Diagnostics;
 using MilTest.MilLight.ServiceProtocol;
+using static MPSSELight.MpsseDevice;
+using System.Threading;
 
 namespace MilLight
 {
@@ -31,25 +33,33 @@ namespace MilLight
             this.mpsseSerialNumber = mpsseSerialNumber;
         }
 
+        MpsseDevice deviceConnect()
+        {
+            MpsseParams mp = new MpsseParams() { clockDevisor = 1 };
+            return new FT2232D(mpsseSerialNumber, mp);
+
+            //return new FT2232D(mpsseSerialNumber);
+        }
+
         protected void spiWrite(byte[] data)
         {
-            using (MpsseDevice mpsse = new FT2232D(mpsseSerialNumber))
+            using (MpsseDevice mpsse = deviceConnect())
             {
                 SpiDevice spi = new SpiDevice(mpsse);
-                DebugWrite("transmit:     ", data);
+                DebugWrite("transmitRaw:     ", data);
                 spi.write(data);
             }
         }
 
         protected byte[] spiReadWrite(byte[] data)
         {
-            using (MpsseDevice mpsse = new FT2232D(mpsseSerialNumber))
+            using (MpsseDevice mpsse = deviceConnect())
             {
                 SpiDevice spi = new SpiDevice(mpsse);
 
-                DebugWrite("transmit:     ", data);
+                DebugWrite("transmitRaw:     ", data);
                 byte[] rcvd = spi.readWrite(data);
-                DebugWrite("received:     ", rcvd);
+                DebugWrite("receivedRaw:     ", rcvd);
                 return rcvd;
             }
         }
@@ -62,6 +72,7 @@ namespace MilLight
 
             if (reply == null)
             {
+                DebugWrite("transmit:        ", request);
                 spiWrite(rawRequest);
                 return null;
             }
@@ -71,7 +82,9 @@ namespace MilLight
                 stream = new MemoryStream(rawReply);
                 reply.Deserialize(stream);
 
-                if (!reply.IsValid)
+                DebugWrite("received:        ", reply);
+
+                if (!((IValidate)reply).IsValid)
                     throw new CheckSumException();
 
                 return reply;
@@ -92,6 +105,12 @@ namespace MilLight
             string hex = BitConverter.ToString(data).Replace("-", "");
             Debug.WriteLine(hex);
         }
+
+        static void DebugWrite(string header, object data)
+        {
+            Debug.Write(header);
+            Debug.WriteLine(data);
+        }
     }
 
     public class MilSpiBridge : SeviceProtocolBrige, IMilSpiBridge
@@ -109,19 +128,25 @@ namespace MilLight
 
         public MilSpiBridge(string mpsseSerialNumber) : base (mpsseSerialNumber) { }
 
+        private UInt16 packNum = 0;
+
         public void DeviceReset(byte addr)
         {
-            transmitPacket(new SPReceiveRequest() { Addr = addr });
+            transmitPacket(new SPResetRequest() { Addr = addr, PackNum = packNum++ });
         }
 
         public void Transmit(byte addr, List<IMilFrame> data)
         {
-            transmitPacket(new SPTransmitRequest() { Addr = addr, Data = data });
+            var packet = new SPTransmitRequest() { Addr = addr, Data = data, PackNum = packNum++ };
+            if (!packet.IsValid)
+                throw new ArgumentException("Not valid frame data");
+
+            transmitPacket(packet);
         }
 
         public ISPStatus getDeviceStatus(byte addr)
         {
-            var reply = (ISPStatus)transmitPacket(   new SPStatusRequest() { Addr = addr }, 
+            var reply = (ISPStatus)transmitPacket(   new SPStatusRequest() { Addr = addr, PackNum = packNum++ }, 
                                                      new SPStatusReply());
 
             return new DeviceStatus((ushort)(reply.ReceivedQueueSize / 2), 
@@ -130,17 +155,22 @@ namespace MilLight
 
         public List<IMilFrame> Receive(byte addr, UInt16 size)
         {
-            var reply = (ISPData)transmitPacket(new SPReceiveRequest() { Addr = addr, RequestedSize = (UInt16)(size * 2) },
+            var reply = (ISPData)transmitPacket(new SPReceiveRequest() { Addr = addr, RequestedSize = (UInt16)(size * 2), PackNum = packNum++ },
                                                 new SPReceiveReply());
             return reply.Data;
         }
 
         public List<IMilFrame> WaitReceive(byte addr, UInt16 size)
         {
-            List<IMilFrame> result = new List<IMilFrame>();
-            while (result.Count < size)
-                result.AddRange(Receive(addr, (UInt16)(size - result.Count)));
-            return result;
+            var cts = new CancellationTokenSource(3000);
+            return Task<List<IMilFrame>>.Run(() =>
+            {
+                List<IMilFrame> result = new List<IMilFrame>();
+                while (!cts.Token.IsCancellationRequested && result.Count < size)
+                    result.AddRange(Receive(addr, (UInt16)(size - result.Count)));
+                return result;
+
+            }, cts.Token).Result;
         }
     }
 }

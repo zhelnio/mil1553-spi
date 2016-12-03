@@ -10,7 +10,7 @@
   <Class Name="MilTest.MilLight.ServiceProtocol.MilFrame" Collapsed="true">
     <Position X="13" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>BAAAAAQAAABAgAAAgAAAAgAAACJAAJAAAAAQAAAAAAA=</HashCode>
+      <HashCode>BAAAAAQAAABAgAAEgAgAAgAAACJAAJAAAAAQAAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\MilFrame.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -21,7 +21,7 @@
   <Class Name="MilTest.MilLight.ServiceProtocol.SPFrame" Collapsed="true">
     <Position X="9.25" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAQgAAAAAhAEAAIwBAABgAAAAIAAIAAIAAAEAAAAAA=</HashCode>
+      <HashCode>AAAQgAAAAAhAEAAMwBAABgAAAAIAAIAAIAAAEAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\SPFrame.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -32,7 +32,7 @@
   <Class Name="MilTest.MilLight.ServiceProtocol.SPReceiveReply" Collapsed="true">
     <Position X="5.75" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAQgAAAAAAAABAAQAAABAAAAAAAABAAAAAQMAAAAAA=</HashCode>
+      <HashCode>AAAQgAAAAAAAABAEQAAABAAAAAAAABAAAAAQMAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\SPReceiveReply.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
@@ -88,13 +88,13 @@
   <Class Name="MilTest.MilLight.ServiceProtocol.SPTransmitRequest" Collapsed="true">
     <Position X="8" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAQgAAAAAAAABAAQAAABAQAAAAAABAAAAAQEAAAAAA=</HashCode>
+      <HashCode>AAAQgAAAAAAAABAEQAgABAQAAAAAABAAAAAQEAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\SPTransmitRequest.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
       <Property Name="Data" />
     </ShowAsCollectionAssociation>
-    <Lollipop Position="0.2" />
+    <Lollipop Position="0.283" />
   </Class>
   <Class Name="MilTest.MilLight.ServiceProtocol.StreamExtensions" Collapsed="true">
     <Position X="18.25" Y="0.5" Width="1.5" />

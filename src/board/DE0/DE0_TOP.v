@@ -226,6 +226,11 @@ assign GPIO0_D[4] 		= spi.master.miso;
 
 assign GPIO1_D[0]		= clk100;
 assign LEDG[0] 			= clk100;
+assign LEDG[1]			= mil0.RXin;
+assign LEDG[2]			= !spi.master.nCS;
+assign LEDG[3]			= spi.master.mosi;
+assign LEDG[4]			= spi.master.sck;
+assign LEDG[5]			= spi.master.miso;
 
 //=======================================================
 //  Structural coding

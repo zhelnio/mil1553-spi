@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MilTest.MilLight.ServiceProtocol
 {
-    public class SPTransmitRequest : SPRequest, ISPData
+    public class SPTransmitRequest : SPRequest, ISPData, IValidate
     {
         public override SPCommand Command
         {
@@ -31,6 +31,16 @@ namespace MilTest.MilLight.ServiceProtocol
             {
                 data = value;
                 Expire();
+            }
+        }
+
+        public bool IsValid
+        {
+            get
+            {
+                return data.Count > 0
+                    && data[0].Header == MilType.WSERV
+                    && data.Count(a => a.Header == MilType.WDATA) == data.Count - 1;
             }
         }
 
@@ -63,6 +73,11 @@ namespace MilTest.MilLight.ServiceProtocol
             ushort size = 0;
             Data.ForEach(a => size += ((ISerializable)a).Serialize(stream));
             return size;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("{0} data:{1}", base.ToString(), string.Join(", ", Data));
         }
     }
 }

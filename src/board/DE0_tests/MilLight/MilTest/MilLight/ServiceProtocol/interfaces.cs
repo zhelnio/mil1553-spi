@@ -60,6 +60,11 @@ namespace MilTest.MilLight.ServiceProtocol
     public interface IDeserializable
     {
         UInt16 Deserialize(Stream stream);
+        
+    }
+
+    public interface IValidate
+    {
         bool IsValid { get; }
     }
 }
