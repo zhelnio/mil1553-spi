@@ -23,15 +23,15 @@ module RingBuffer(input bit nRst, clk,
 						IPop.slave pop,
 						IMemoryWriter.master wbus,
 						IMemoryReader.master rbus
-);
+						);
   // real max used space = MEM_END_ADDR - MEM_START_ADDR
   // one memory cell is always unused
 	parameter MEM_START_ADDR 	= 16'd0;
 	parameter MEM_END_ADDR 		= 16'd2;
 
 	logic [`ADDRW_TOP:0] 	waddr, nextWaddr, optWaddr, 
-										raddr, nextRaddr, optRaddr,
-										taddr, nextTaddr;
+							raddr, nextRaddr, optRaddr,
+							taddr, nextTaddr, optTaddr;
 	
 	logic [`ADDRW_TOP:0] 	used;
 	
@@ -43,20 +43,17 @@ module RingBuffer(input bit nRst, clk,
 	assign rbus.request = (used == '0) ? 0 : pop.request;
 	assign control.memUsed = used;
 	
-	assign used = (taddr >= raddr) ? (taddr - raddr)
-											 : (MEM_END_ADDR - MEM_START_ADDR + taddr - raddr + 1);
-	
-	logic debug;
-	assign debug = (taddr >= raddr);
+	assign used = (taddr >= raddr) 	? (taddr - raddr)
+									: (MEM_END_ADDR - MEM_START_ADDR + taddr - raddr + 1);
 											
 	logic isInTransaction;
 	logic isInTransactionFlag;
-	assign isInTransaction = control.open | isInTransactionFlag;
+	assign isInTransaction =   (control.open | isInTransactionFlag);
 	
 	always_ff @ (posedge clk)
 		if(!nRst) begin
-			waddr <= MEM_START_ADDR;
 			raddr <= MEM_START_ADDR;
+			waddr <= MEM_START_ADDR;
 			taddr <= MEM_START_ADDR;
 			isInTransactionFlag <= 0;
 			push.done <= 0;
@@ -77,31 +74,20 @@ module RingBuffer(input bit nRst, clk,
 		end
 		
 	always_comb begin
-		nextWaddr = waddr;
-		nextRaddr = raddr;
-		nextTaddr = taddr;
 		
 		optWaddr = (waddr == MEM_END_ADDR) ? MEM_START_ADDR : waddr + 1;
 		optRaddr = (raddr == MEM_END_ADDR) ? MEM_START_ADDR : raddr + 1;
+		optTaddr = (taddr == MEM_END_ADDR) ? MEM_START_ADDR : taddr + 1;
 		
-		if(rbus.done) begin
-			if(used > 0) nextRaddr = optRaddr;
-		end
+		nextRaddr = (rbus.done && used > 0) || 
+					(wbus.done && optWaddr == raddr) ? optRaddr : raddr;
+
+		nextWaddr = (control.rollback) ? taddr : (wbus.done ? optWaddr : waddr);
 		
-		if(wbus.done) begin
-			nextWaddr = optWaddr;
-			if(!isInTransaction) nextTaddr = optWaddr;
-			
-			if(optWaddr == raddr)
-				nextRaddr = optRaddr;
-			if(optWaddr == taddr)
-				nextTaddr = optWaddr;
-		end
-		
-		if(control.rollback)
-			nextWaddr = nextTaddr;
-		else if(control.commit)
-			nextTaddr = nextWaddr;
+		nextTaddr = (!isInTransaction) || 
+					(isInTransaction && control.commit) ? nextWaddr :
+					(isInTransaction && rbus.done && taddr == nextRaddr) ||
+					(isInTransaction && wbus.done && taddr == nextWaddr) ? optTaddr : taddr;
 	end
 endmodule
 
