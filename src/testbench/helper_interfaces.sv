@@ -59,4 +59,30 @@ interface IMemoryWriterHelper(input logic clk, IMemoryWriter.master writer);
 
 endinterface
 
+interface IRingBufferHelper(input logic clk, IRingBufferControl.master control);
+
+    task automatic doInit();
+        @(posedge clk) control.open <= '0; control.commit <= '0; control.rollback <= '0;
+    endtask
+
+    task automatic doOpen();
+        @(posedge clk) control.open <= '1;
+        @(posedge clk) control.open <= '0;
+        $display("IRingBufferHelper.open %m");
+    endtask
+
+    task automatic doCommit();
+        @(posedge clk) control.commit <= '1;
+        @(posedge clk) control.commit <= '0;
+        $display("IRingBufferHelper.commit %m");
+    endtask
+
+    task automatic doRollback();
+        @(posedge clk) control.rollback <= '1;
+        @(posedge clk) control.rollback <= '0;
+        $display("IRingBufferHelper.rollback %m");
+    endtask 
+
+endinterface
+
 `endif

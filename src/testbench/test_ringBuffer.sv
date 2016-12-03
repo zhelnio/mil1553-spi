@@ -192,10 +192,146 @@ module test_ringBufferConcurentOverflow();
 
 endmodule
 
+module test_ringBufferCommitRollback();
+	bit nRst, clk;
+	
+	IMemory mbus();
+	IMemoryReader rBus();
+	IMemoryWriter wBus();
+	IArbiter abus[3:0]();
+	IRingBufferControl rcontrol();
+	IPush	push();
+	IPop	pop();
+
+	MemoryHelper  mem(nRst, clk, mbus.memory);
+	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
+	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
+	Arbiter			arbiter(nRst, clk, abus);
+	RingBuffer		ring(nRst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
+	
+	//test helpers
+	IPushHelper pushHelper(clk, push);
+	IPopHelper  popHelper(clk, pop);
+  IRingBufferHelper rbHelper(clk, rcontrol);
+	
+	
+  initial begin
+    clk = '1;	nRst = '0; 
+    rbHelper.doInit();
+	
+	  #2	nRst = '1;
+
+    assert (rcontrol.memUsed == 0);
+
+    rbHelper.doOpen();
+   
+	  pushHelper.doPush(16'hABCD);
+	  assert (rcontrol.memUsed == 0);
+
+    rbHelper.doCommit();
+    #1 assert (rcontrol.memUsed == 1);
+	  
+	  pushHelper.doPush(16'h1234);
+    assert (rcontrol.memUsed == 2);
+
+    popHelper.doPop();
+    assert (pop.data == 16'hABCD);
+    assert (rcontrol.memUsed == 1);
+  
+    popHelper.doPop();
+    assert (pop.data == 16'h1234);
+    assert (rcontrol.memUsed == 0);
+
+    rbHelper.doOpen();
+   
+	  pushHelper.doPush(16'hABCD);
+	  assert (rcontrol.memUsed == 0);
+
+    rbHelper.doRollback();
+    #1 assert (rcontrol.memUsed == 0);
+    
+    #10 $stop;
+  end
+
+  always #1  clk =  !clk;
+endmodule
 
 
+module test_ringBufferOverflowCommitRollback();
+	bit nRst, clk;
+	
+	IMemory mbus();
+	IMemoryReader rBus();
+	IMemoryWriter wBus();
+	IArbiter abus[3:0]();
+	IRingBufferControl rcontrol();
+	IPush	push();
+	IPop	pop();
 
+	MemoryHelper  mem(nRst, clk, mbus.memory);
+	MemoryReader	reader(nRst, clk, mbus.reader, rBus.slave, abus[1].client);
+	MemoryWriter	writer(nRst, clk, mbus.writer, wBus.slave, abus[0].client);
+	Arbiter			arbiter(nRst, clk, abus);
+	
+	RingBuffer	#(.MEM_START_ADDR(16'h00), .MEM_END_ADDR(16'h02))	
+	           ring(nRst, clk, rcontrol.slave, push.slave, pop.slave, wBus.master, rBus.master);
+     
+	//test helpers
+	IPushHelper pushHelper(clk, push);
+	IPopHelper  popHelper(clk, pop);
+  IRingBufferHelper rbHelper(clk, rcontrol);
+	
+  initial begin
+    clk = '1;	nRst = '0; 
+    rbHelper.doInit();
+	
+	  #2	nRst = '1;
 
+    assert (rcontrol.memUsed == 0);
+    pushHelper.doPush(16'hABCD);
+    assert (rcontrol.memUsed == 1);
+
+    rbHelper.doOpen();
+	  
+    pushHelper.doPush(16'hEF01);
+    assert (rcontrol.memUsed == 1);
+    pushHelper.doPush(16'h2345);
+    assert (rcontrol.memUsed == 0);
+    pushHelper.doPush(16'h6789);
+    assert (rcontrol.memUsed == 0);
+
+    rbHelper.doCommit();
+    #1 assert (rcontrol.memUsed == 2);
+    
+    popHelper.doPop();	
+    assert (pop.data == 16'h2345);
+    assert (rcontrol.memUsed == 1);
+    popHelper.doPop();	
+    assert (pop.data == 16'h6789);
+    assert (rcontrol.memUsed == 0);
+
+    pushHelper.doPush(16'hABCD);
+    assert (rcontrol.memUsed == 1);
+
+    rbHelper.doOpen();
+
+    pushHelper.doPush(16'h0123);
+    assert (rcontrol.memUsed == 1);
+    
+    rbHelper.doRollback();
+    #1 assert (rcontrol.memUsed == 1);
+
+    popHelper.doPop();	
+    assert (pop.data == 16'hABCD);
+    assert (rcontrol.memUsed == 0);
+
+    #10 
+    $stop;
+  end
+
+  always #1  clk =  ! clk;
+
+endmodule
 
 
 

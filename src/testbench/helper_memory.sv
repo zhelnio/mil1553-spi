@@ -59,21 +59,6 @@ module MemoryHelper(    input bit nRst, clk,
 			mem.rd_ready <= re[(readSimulationDelay-1)];
 		end
 	end
-
-    /*
-    tri0 wr_enable, rd_enable;
-	tri0 [`ADDRW_TOP:0] rd_addr;
-	tri0 [`ADDRW_TOP:0] wr_addr;
-	tri0 [`DATAW_TOP:0]	wr_data;
-
-	logic rd_ready, busy;
-	logic [`DATAW_TOP:0]	rd_data;
-
-    	modport memory(input  wr_addr, wr_data, wr_enable,
-						input  rd_addr, rd_enable, 
-						output rd_data, rd_ready, busy);
-    */
-
 	
 endmodule
 
