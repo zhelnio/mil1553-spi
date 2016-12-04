@@ -5,7 +5,6 @@ Full description is under construction
 
 ## IP core block diagram
 ![Alt text](/readme/mil1553-spi_diagram.png?raw=true "diagram")
-
 ## Directory structure
 | Folder | Description |
 | --- | --- |
