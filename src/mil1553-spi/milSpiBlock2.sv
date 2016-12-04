@@ -105,11 +105,25 @@ module MilSpiBlock2	(	input logic nRst, clk,
 							.out(tStatPop1.slave),
 							.control(statusControl1));
 	
+	//checksum error counters
+	logic [15:0] errorCounter0;
+	logic [15:0] errorCounter1;
+	always_ff @ (posedge clk) begin
+		if(!nRst)
+			{errorCounter0, errorCounter1} <= 0;
+		else begin
+			errorCounter0 <= errorCounter0 + rcontrolSM0.rollback;
+			errorCounter1 <= errorCounter1 + rcontrolSM1.rollback;
+		end
+	end
+
 	//control interfaces
 	assign statusControl0.statusWord0 = rcontrolMS0.memUsed;
 	assign statusControl0.statusWord1 = rcontrolSM0.memUsed;
+	assign statusControl0.statusWord2 = errorCounter0;
 	assign statusControl1.statusWord0 = rcontrolMS1.memUsed;
 	assign statusControl1.statusWord1 = rcontrolSM1.memUsed;
+	assign statusControl1.statusWord2 = errorCounter1;
 
 	//command processing 
 	logic [8:0] confOut;
@@ -118,6 +132,9 @@ module MilSpiBlock2	(	input logic nRst, clk,
 	assign enablePushToMil0 = (rcontrolSM0.memUsed != 0);
 	assign enablePushToMil1 = (rcontrolSM1.memUsed != 0);
 
+	assign {rcontrolMS0.open, rcontrolMS0.commit, rcontrolMS0.rollback} = '0;
+	assign {rcontrolMS1.open, rcontrolMS1.commit, rcontrolMS1.rollback} = '0;
+
 	logic [5:0] confIn;
 	assign confIn[0] = (spiControl.inAddr == SPI_BLOCK_ADDR0);
 	assign confIn[1] = (spiControl.inAddr == SPI_BLOCK_ADDR1);
@@ -125,15 +142,6 @@ module MilSpiBlock2	(	input logic nRst, clk,
 	assign confIn[3] = (spiControl.inCmdCode == TCC_SEND_DATA);
 	assign confIn[4] = (spiControl.inCmdCode == TCC_RECEIVE_STS);
 	assign confIn[5] = (spiControl.inCmdCode == TCC_RECEIVE_DATA);
-
-	always_ff @ (posedge clk) begin
-		if(!nRst) begin
-			{rcontrolMS0.open, rcontrolMS0.commit, rcontrolMS0.rollback} = '0;
-			{rcontrolSM0.open, rcontrolSM0.commit, rcontrolSM0.rollback} = '0;
-			{rcontrolMS1.open, rcontrolMS1.commit, rcontrolMS1.rollback} = '0;
-			{rcontrolSM1.open, rcontrolSM1.commit, rcontrolSM1.rollback} = '0;
-		end
-	end
 
 	always_comb begin
 		case(confIn)
@@ -148,6 +156,16 @@ module MilSpiBlock2	(	input logic nRst, clk,
 			6'b000110:	confOut = 9'b101000100; // TCC_RESET from SPI_BLOCK_ADDR1
 		endcase
 	end
+
+	// TCC_SEND_DATA from SPI_BLOCK_ADDR0 
+	assign rcontrolSM0.open 	= (confIn == 6'b001001) ? spiControl.inPacketStart	: '0;
+	assign rcontrolSM0.commit 	= (confIn == 6'b001001) ? spiControl.inPacketEnd	: '0;
+	assign rcontrolSM0.rollback	= (confIn == 6'b001001) ? spiControl.inPacketErr	: '0;
+
+	// TCC_SEND_DATA from SPI_BLOCK_ADDR1
+	assign rcontrolSM1.open 	= (confIn == 6'b001010) ? spiControl.inPacketStart	: '0;
+	assign rcontrolSM1.commit 	= (confIn == 6'b001010) ? spiControl.inPacketEnd	: '0;
+	assign rcontrolSM1.rollback	= (confIn == 6'b001010) ? spiControl.inPacketErr	: '0;
 
 	always_comb begin
 		case(confIn)

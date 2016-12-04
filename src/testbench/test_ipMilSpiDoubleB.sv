@@ -122,6 +122,7 @@ module test_IpMilSpiDoubleB();
 						spiDebug.doPush(16'h0);
 						spiDebug.doPush(16'h0);
 						spiDebug.doPush(16'h0);
+						spiDebug.doPush(16'h0);
 						spiDebug.doPush(16'h0);		// blank word after the packet
 					
 						$display("GetStatus End");	
@@ -132,11 +133,13 @@ module test_IpMilSpiDoubleB();
 						@(spiRcvd.data == 16'hAC00 && spiRcvd.request == 1);	//responce addr = AC
 						assert( 1 == 1);
 						@(posedge spiRcvd.request);
-						assert(spiRcvd.data == 16'h02B0);	// responce size = 02, cmd = B0
+						assert(spiRcvd.data == 16'h03B0);	// responce size = 02, cmd = B0
 						@(posedge spiRcvd.request);
 						assert(spiRcvd.data > 0);	// input queue size
 						@(posedge spiRcvd.request);
 						assert(spiRcvd.data == 0);	// output queue	size
+						@(posedge spiRcvd.request);
+						assert(spiRcvd.data == 0);	// checksum errors count
 						@(posedge spiRcvd.request);	// check sum
 						@(posedge spiRcvd.request); // packet num
 						@(posedge spiRcvd.request);	// blank word after the packet

@@ -11,21 +11,22 @@ interface IStatusInfoControl();
 	logic enable;
 	logic [15:0] 	statusWord0;
 	logic [15:0] 	statusWord1;
-	logic [1:0]   statusSize;
+	logic [15:0] 	statusWord2;
+	logic [1:0]   	statusSize;
 	
-	modport slave	(input  enable, statusWord0, statusWord1,
-	               output statusSize);
-	modport master(output enable, statusWord0, statusWord1, 
-                 input  statusSize);
+	modport slave	(input enable, statusWord0, statusWord1, statusWord2,
+	               	output statusSize);
+	modport master(	output enable, statusWord0, statusWord1, statusWord2,
+                 	input  statusSize);
 endinterface
 
 module StatusInfo(input bit nRst, clk,
 						      IPop.slave			 out,
 						      IStatusInfoControl.slave control);
 	
-	assign control.statusSize = 2;
+	assign control.statusSize = 3;
 	
-	enum logic [2:0] {IDLE, SW0_L, SW0_S, SW1_L, SW1_S } Next, State;
+	enum logic [2:0] {IDLE, SW0_L, SW0_S, SW1_L, SW1_S, SW2_L, SW2_S } Next, State;
 	
 	always_ff @ (posedge clk)
 		if(!nRst | !control.enable)
@@ -33,7 +34,7 @@ module StatusInfo(input bit nRst, clk,
 		else
 			State <= Next;
 	
-	assign out.done = (State == SW0_L || State == SW1_L );
+	assign out.done = (State == SW0_L || State == SW1_L || State == SW2_L);
 	
 	always_comb begin
 		unique case(State)
@@ -42,6 +43,8 @@ module StatusInfo(input bit nRst, clk,
 			SW0_S:	out.data = control.statusWord0;
 			SW1_L:	out.data = control.statusWord1;
 			SW1_S:	out.data = control.statusWord1;
+			SW2_L:	out.data = control.statusWord2;
+			SW2_S:	out.data = control.statusWord2;
 		endcase
 	end
 	
@@ -52,7 +55,9 @@ module StatusInfo(input bit nRst, clk,
 			SW0_L:	Next = SW0_S;
 			SW0_S:	if(out.request) Next = SW1_L;
 			SW1_L:	Next = SW1_S;
-			SW1_S:	;
+			SW1_S:	if(out.request) Next = SW2_L;
+			SW2_L:	Next = SW2_S;
+			SW2_S:	;
 		endcase
 	end
 		

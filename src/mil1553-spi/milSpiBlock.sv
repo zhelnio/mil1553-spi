@@ -71,31 +71,46 @@ module MilSpiBlock	(	input logic nRst, clk,
 							.out(tStatPop.slave),
 							.control(statusControl));
 	
+	//error counter
+	logic [15:0] errorCounter;
+	always_ff @ (posedge clk) begin
+		if(!nRst)
+			errorCounter <= 0;
+		else
+			errorCounter <= errorCounter + rcontrolSM.rollback;
+	end
+
 	//control interfaces
 	assign statusControl.statusWord0 = rcontrolMS.memUsed;
 	assign statusControl.statusWord1 = rcontrolSM.memUsed;
+	assign statusControl.statusWord2 = errorCounter;
+
+	//module addr filter
+	logic  addrCorrect;
+	assign addrCorrect = (spiControl.inAddr == SPI_BLOCK_ADDR);
 
 	//command processing 
 	logic [4:0] conf;
-	
-	//module addr filter
+
 	TCommandCode commandCode;
-	assign commandCode = (spiControl.inAddr == SPI_BLOCK_ADDR) ? spiControl.inCmdCode : TCC_UNKNOWN;
+	assign commandCode 				= addrCorrect ? spiControl.inCmdCode : TCC_UNKNOWN;
 	assign spiControl.outAddr 		= SPI_BLOCK_ADDR;
 	assign spiControl.outCmdCode	= commandCode;
+	assign rcontrolSM.open			= addrCorrect ? spiControl.inPacketStart : 0;
+	assign rcontrolSM.commit		= addrCorrect ? spiControl.inPacketEnd : 0;
+	assign rcontrolSM.rollback		= addrCorrect ? spiControl.inPacketErr : 0;
+
+	assign { rcontrolMS.open, rcontrolMS.commit, rcontrolMS.rollback } = '0;
 	
-	assign {	enablePushFromSpi, muxKeyPopToSpi, 
-	         spiControl.outEnable, statusControl.enable} = conf;
+	assign { enablePushFromSpi, muxKeyPopToSpi, 
+	         spiControl.outEnable, statusControl.enable } = conf;
 
 	assign enablePushToMil = (rcontrolSM.memUsed != 0);
 				
 	always_ff @ (posedge clk) begin
-		if(!nRst) begin
+		if(!nRst)
 			nResetRequest <= 1;
-			{rcontrolMS.open, rcontrolMS.commit, rcontrolMS.rollback} = '0;
-			{rcontrolSM.open, rcontrolSM.commit, rcontrolSM.rollback} = '0;
-		end
-			
+
 		if(commandCode == TCC_RESET)
 			nResetRequest <= 0;
 	end
