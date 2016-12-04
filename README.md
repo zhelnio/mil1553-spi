@@ -4,7 +4,7 @@ MIL-STD-1553 &lt;-> SPI bridge
 
 ![Alt text](/readme/mil1553-spi_test.png?raw=true "test diagram")
 
-Directory structure:
+## Directory structure
 
 
 
