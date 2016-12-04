@@ -1,7 +1,11 @@
 # mil1553-spi
-MIL-STD-1553 &lt;-> SPI bridge
+MIL-STD-1553 &lt;-> SPI bridge with internal memory buffer support.
 
-Full description is under construction 
+Available commands:
+- transmit data to mil interface
+- get data, received from mil interface
+- status request
+- device reset
 
 ## IP core block diagram
 ![Alt text](/readme/mil1553-spi_diagram.png?raw=true "diagram")
