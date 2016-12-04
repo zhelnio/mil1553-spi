@@ -7,6 +7,8 @@ Available commands:
 - status request
 - device reset
 
+**Attention**: it was not tested with real MIL-STD-1553 devices
+
 ## IP core block diagram
 ![Alt text](/readme/mil1553-spi_diagram.png?raw=true "diagram")
 ## Directory structure
