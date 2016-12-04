@@ -2,10 +2,10 @@
 using System.Text;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MilLight;
 using System.Threading;
 using System.Linq;
 using MilTest.MilLight.ServiceProtocol;
+using MilTest.MilLight.MilSpiBridge;
 
 namespace MilTest
 {

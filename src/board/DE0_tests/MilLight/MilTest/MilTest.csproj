@@ -38,12 +38,6 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FTD2XX_NET">
-      <HintPath>..\lib\FTD2XX_NET.dll</HintPath>
-    </Reference>
-    <Reference Include="MPSSELight">
-      <HintPath>..\lib\MPSSELight.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -61,30 +55,15 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="MilLight\MilLight.cs" />
-    <Compile Include="MilLight\ServiceProtocol\ExpirableObject.cs" />
-    <Compile Include="MilLight\ServiceProtocol\interfaces.cs" />
-    <Compile Include="MilLight\ServiceProtocol\MilFrame.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPFrame.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPReceiveReply.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPReceiveRequest.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPReply.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPRequest.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPResetRequest.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPStatusReply.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPStatusRequest.cs" />
-    <Compile Include="MilLight\ServiceProtocol\SPTransmitRequest.cs" />
-    <Compile Include="MilLight\SpiStream.cs" />
-    <Compile Include="MilLight\ServiceProtocol\StreamExtensions.cs" />
     <Compile Include="ProtocolTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HardwareTest.cs" />
-    <Compile Include="SpiStreamTest.cs" />
-    <Compile Include="UnitTest1.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="MilLight\ServiceProtocol.cd" />
-    <None Include="packages.config" />
+    <ProjectReference Include="..\MilLight\MilLight.csproj">
+      <Project>{cf4eaf10-77a4-435d-b706-779275906bb0}</Project>
+      <Name>MilLight</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
