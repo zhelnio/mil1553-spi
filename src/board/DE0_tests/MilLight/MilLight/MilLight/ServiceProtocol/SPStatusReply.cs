@@ -108,5 +108,11 @@ namespace MilTest.MilLight.ServiceProtocol
 
             return statusPayloadSize;
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0} ReceivedQueueSize:{1:X4} TransmitQueueSize:{2:X4} SpiErrorCount:{3:X4}", 
+                                base.ToString(), ReceivedQueueSize, TransmitQueueSize, SpiErrorCount);
+        }
     }
 }

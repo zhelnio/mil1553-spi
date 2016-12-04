@@ -76,6 +76,12 @@ namespace MilTest
         }
 
         [TestMethod]
+        public void TransmissionRandom2Test()
+        {
+            TransmissionTest(PacketGenerator.randomPacket(2));
+        }
+
+        [TestMethod]
         public void TransmissionRandomNTest()
         {
             TransmissionTest(PacketGenerator.randomPacket());

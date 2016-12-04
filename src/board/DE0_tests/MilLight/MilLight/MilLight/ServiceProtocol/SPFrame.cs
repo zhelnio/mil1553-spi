@@ -121,7 +121,7 @@ namespace MilTest.MilLight.ServiceProtocol
 
         public override string ToString()
         {
-            return string.Format("cmd:{0} size:{1:X4} crc:{2:X4} num:{3:X4}", Command, DataSize, CheckSum, PackNum);
+            return string.Format("addr:{0:X2} cmd:{1} size:{2:X4} crc:{3:X4} num:{4:X4}", Addr, Command, DataSize, CheckSum, PackNum);
         }
     }
 }
