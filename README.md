@@ -17,7 +17,7 @@ Available commands:
 | [/doc](/doc) | project documentation |
 | [/src/board/DE0](/src/board/DE0) | Altera and Terasic board specific code for hardware tests |
 | [/src/board/DE0_tests/batch_tests](/src/board/DE0_tests/batch_tests) | simple batch data transfer tests (SpiLight is used) |
-| [/src/board/DE0_tests/MilLight](/src/board/DE0_tests/MilLight) | .NET library for working with bridge and Unit Test Project, provides automatic hardware tests |
+| [/src/board/DE0_tests/MilLight](/src/board/DE0_tests/MilLight) | bridge communication .NET library, Unit Test Project for automatic hardware testing |
 | [/src/mil1553-spi](/src/mil1553-spi) | mil1553-spi bridge IP cores SystemVerilog source code |
 | [/src/testbench](/src/testbench) | mil1553-spi bridge IP cores SystemVerilog testbenches |
 
