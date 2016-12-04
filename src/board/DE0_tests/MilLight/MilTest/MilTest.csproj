@@ -55,6 +55,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="PacketGenerator.cs" />
     <Compile Include="ProtocolTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="HardwareTest.cs" />
