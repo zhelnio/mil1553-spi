@@ -1,7 +1,7 @@
 # mil1553-spi
 MIL-STD-1553 &lt;-> SPI bridge with internal memory buffer support.
 
-Available commands:
+Available commands (see detailes in [/doc](/doc)):
 - transmit data to mil interface
 - get data, received from mil interface
 - status request
