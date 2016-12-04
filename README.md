@@ -1,5 +1,9 @@
 # mil1553-spi
 MIL-STD-1553 &lt;-> SPI bridge
+
+Full description is under construction 
+
+## IP core block diagram
 ![Alt text](/readme/mil1553-spi_diagram.png?raw=true "diagram")
 
 ## Directory structure
@@ -12,7 +16,7 @@ MIL-STD-1553 &lt;-> SPI bridge
 | [/src/mil1553-spi](/src/mil1553-spi) | mil1553-spi bridge IP cores SystemVerilog source code |
 | [/src/testbench](/src/testbench) | mil1553-spi bridge IP cores SystemVerilog testbenches |
 
-
+## Hardware test configuration
 ![Alt text](/readme/mil1553-spi_test.png?raw=true "test diagram")
 
-Full description is under construction 
+
