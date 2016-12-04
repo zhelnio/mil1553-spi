@@ -19,12 +19,11 @@ namespace MilTest
     {
         public static void Main()
         {
-            var t = new HardwareTest();
-            t.TransmissionFixedTest();
+            var t = new HardwareErrorTest();
+            t.SendErrorAndCheckStatus();
         }
     }
 
-    
     [TestClass]
     public class HardwareTest
     {
@@ -34,7 +33,7 @@ namespace MilTest
         const int cycleTestCount = 100;
 
         [TestInitialize()]
-        public void HardwareTestTestInitialize()
+        public void HardwareTestInitialize()
         {
             IMilSpiBridge bridge = new MilSpiBridge(mpsseDeviceSerialNum);
             bridge.DeviceReset(transmitterAddr);
@@ -61,6 +60,8 @@ namespace MilTest
             status = bridge.getDeviceStatus(receiverAddr);
             Assert.IsTrue(status.ReceivedQueueSize == 0);
         }
+
+
 
         [TestMethod]
         public void TransmissionFixedTest()

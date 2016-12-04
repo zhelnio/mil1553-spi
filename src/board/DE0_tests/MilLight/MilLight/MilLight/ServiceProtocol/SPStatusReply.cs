@@ -20,7 +20,7 @@ namespace MilTest.MilLight.ServiceProtocol
             get { return SPCommand.Status; }
         }
 
-        protected const UInt16 statusPayloadSize = 2;
+        protected const UInt16 statusPayloadSize = 3;
 
         private ushort transmitQueueSize;
         public ushort TransmitQueueSize
@@ -52,6 +52,21 @@ namespace MilTest.MilLight.ServiceProtocol
             }
         }
 
+        private ushort spiErrorCount;
+        public ushort SpiErrorCount
+        {
+            get
+            {
+                Actualize();
+                return spiErrorCount;
+            }
+            set
+            {
+                spiErrorCount = value;
+                Expire();
+            }
+        }
+
         protected override ushort PayloadDataSize()
         {
             return statusPayloadSize;
@@ -59,7 +74,7 @@ namespace MilTest.MilLight.ServiceProtocol
 
         protected override ushort PayloadCheckSum()
         {
-            return (UInt16)(transmitQueueSize + receivedQueueSize);
+            return (UInt16)(transmitQueueSize + receivedQueueSize + spiErrorCount);
         }
 
         protected override bool PayloadEquals(object obj)
@@ -69,7 +84,8 @@ namespace MilTest.MilLight.ServiceProtocol
                 return false;
 
             return o.receivedQueueSize == receivedQueueSize
-                && o.transmitQueueSize == transmitQueueSize;
+                && o.transmitQueueSize == transmitQueueSize
+                && o.spiErrorCount == spiErrorCount;
         }
 
         protected override int PayloadHashCode()
@@ -77,6 +93,7 @@ namespace MilTest.MilLight.ServiceProtocol
             int hash = 56;
             hash = hash * 23 + receivedQueueSize.GetHashCode();
             hash = hash * 23 + transmitQueueSize.GetHashCode();
+            hash = hash * 23 + spiErrorCount.GetHashCode();
             return hash;
         }
 
@@ -87,6 +104,7 @@ namespace MilTest.MilLight.ServiceProtocol
 
             receivedQueueSize = stream.ReadUInt16();
             transmitQueueSize = stream.ReadUInt16();
+            spiErrorCount     = stream.ReadUInt16();
 
             return statusPayloadSize;
         }

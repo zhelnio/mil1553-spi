@@ -21,7 +21,7 @@ namespace MilTest.MilLight.ServiceProtocol
 
         protected override UInt16 PostfixSize()
         {
-            return (UInt16)(base.PostfixSize() + 2 /*size of SPStatusReply payload in words*/);
+            return (UInt16)(base.PostfixSize() + 3 /*size of SPStatusReply payload in words*/);
         }
     }
 }

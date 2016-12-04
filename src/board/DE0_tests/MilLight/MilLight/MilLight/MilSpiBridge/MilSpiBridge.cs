@@ -18,16 +18,20 @@ namespace MilTest.MilLight.MilSpiBridge
     {
         public class DeviceStatus : ISPStatus
         {
-            public DeviceStatus(ushort receivedQueueSize, ushort transmitQueueSize)
+            public DeviceStatus(ushort receivedQueueSize, ushort transmitQueueSize, ushort spiErrorCount)
             {
                 ReceivedQueueSize = receivedQueueSize;
                 TransmitQueueSize = transmitQueueSize;
+                SpiErrorCount = spiErrorCount;
             }
             public ushort ReceivedQueueSize { get; set; }
             public ushort TransmitQueueSize { get; set; }
+            public ushort SpiErrorCount { get; set; }
         }
 
         public MilSpiBridge(string mpsseSerialNumber) : base(mpsseSerialNumber) { }
+
+        const byte MilFrameSizeInWords = 2;
 
         private UInt16 packNum = 0;
 
@@ -50,13 +54,19 @@ namespace MilTest.MilLight.MilSpiBridge
             var reply = (ISPStatus)transmitPacket(new SPStatusRequest() { Addr = addr, PackNum = packNum++ },
                                                      new SPStatusReply());
 
-            return new DeviceStatus((ushort)(reply.ReceivedQueueSize / 2),
-                                    (ushort)(reply.TransmitQueueSize / 2));
+            return new DeviceStatus((ushort)(reply.ReceivedQueueSize / MilFrameSizeInWords),
+                                    (ushort)(reply.TransmitQueueSize / MilFrameSizeInWords),
+                                    reply.SpiErrorCount);
         }
 
         public List<IMilFrame> Receive(byte addr, UInt16 size)
         {
-            var reply = (ISPData)transmitPacket(new SPReceiveRequest() { Addr = addr, RequestedSize = (UInt16)(size * 2), PackNum = packNum++ },
+            var reply = (ISPData)transmitPacket(new SPReceiveRequest()
+                                                {
+                                                    Addr = addr,
+                                                    RequestedSize = (UInt16)(size * MilFrameSizeInWords),
+                                                    PackNum = packNum++
+                                                },
                                                 new SPReceiveReply());
             return reply.Data;
         }

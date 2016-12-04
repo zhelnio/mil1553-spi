@@ -73,7 +73,7 @@
   <Class Name="MilTest.MilLight.ServiceProtocol.SPStatusReply" Collapsed="true">
     <Position X="3.5" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAQgAAAAAAAAAAAQAgoBAAACAAAAAAAAAAQMAAAAAA=</HashCode>
+      <HashCode>AAAQgAAAAAAAAAAAQAgoBIAACACAAAAAAAAQMAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\SPStatusReply.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -127,7 +127,7 @@
   <Interface Name="MilTest.MilLight.ServiceProtocol.ISPStatus" Collapsed="true">
     <Position X="19.25" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAgIAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAgIAIAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>MilLight\ServiceProtocol\interfaces.cs</FileName>
     </TypeIdentifier>
   </Interface>

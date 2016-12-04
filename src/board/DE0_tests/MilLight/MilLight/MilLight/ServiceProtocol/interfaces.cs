@@ -56,6 +56,7 @@ namespace MilTest.MilLight.ServiceProtocol
     {
         UInt16 TransmitQueueSize { get; }
         UInt16 ReceivedQueueSize { get; }
+        UInt16 SpiErrorCount { get; }
     }
 
     public interface ISerializable
