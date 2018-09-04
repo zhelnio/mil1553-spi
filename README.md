@@ -7,7 +7,8 @@ Available commands (see detailes in [/doc](/doc)):
 - status request
 - device reset
 
-**Attention**: it was not tested with real MIL-STD-1553 devices
+**Attention**: 
+It was not tested with real MIL-STD-1553 devices. This project is my student work and some of its parts are realy terrible. So do not use it in real applications.
 
 ## IP core block diagram
 ![Alt text](/readme/mil1553-spi_diagram.png?raw=true "diagram")
